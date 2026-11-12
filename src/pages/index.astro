@@ -31,7 +31,7 @@ const faq = [
 <Layout>
 	<!-- HERO -->
 	<section class="hero">
-		<img class="hero-bg" src="/images/sunset.webp" alt="Le Campus du Village Tech au coucher du soleil, au bord de la mer" fetchpriority="high" />
+		<video class="hero-bg" id="hero-video" src="/video/hydravion.mp4" poster="/video/hydravion.jpg" autoplay muted loop playsinline aria-hidden="true"></video>
 		<div class="hero-fade" aria-hidden="true"></div>
 		<div class="wrap hero-inner">
 			<p class="eyebrow">Play · Build · Collaborate</p>
@@ -171,7 +171,11 @@ const faq = [
 	<!-- CTA FINAL -->
 	<section class="section wrap">
 		<div class="final">
-			<img src="/images/hero.webp" alt="" loading="lazy" />
+			<svg class="rings" viewBox="0 0 1000 1000" aria-hidden="true">
+				<circle cx="500" cy="500" r="480" class="r1" />
+				<circle cx="500" cy="500" r="420" class="r2" />
+				<circle cx="500" cy="500" r="355" class="r3" />
+			</svg>
 			<div class="final-text">
 				<img class="final-logo" src="/images/logo.png" alt="" width="84" height="84" />
 				<h2>Les portes sont <span class="script">ouvertes !</span></h2>
@@ -183,6 +187,11 @@ const faq = [
 </Layout>
 
 <script>
+	const heroVideo = document.getElementById('hero-video') as HTMLVideoElement | null;
+	if (heroVideo && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		heroVideo.removeAttribute('autoplay');
+		heroVideo.pause();
+	}
 	const video = document.getElementById('film-video') as HTMLVideoElement;
 	const playBtn = document.getElementById('film-play') as HTMLButtonElement;
 	playBtn.addEventListener('click', () => {
@@ -238,7 +247,7 @@ const faq = [
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		object-position: 50% 30%;
+		object-position: 55% 50%;
 	}
 	.hero-fade {
 		position: absolute;
@@ -602,6 +611,7 @@ const faq = [
 
 	/* final */
 	.final {
+		background: radial-gradient(circle at 50% 38%, #ff8fc4 0%, #b45fd6 24%, #5b4ee6 52%, #3346e0 82%);
 		position: relative;
 		border-radius: 28px;
 		overflow: hidden;
@@ -611,6 +621,50 @@ const faq = [
 		align-items: center;
 		justify-content: center;
 		text-align: center;
+	}
+	.final .rings {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: min(900px, 160%);
+		aspect-ratio: 1;
+		translate: -50% -50%;
+		z-index: 1;
+		fill: none;
+		pointer-events: none;
+	}
+	.final .rings circle {
+		stroke: #fff;
+		transform-origin: 500px 500px;
+	}
+	.final .r1 {
+		stroke-opacity: 0.25;
+		stroke-width: 2;
+		stroke-dasharray: 3 16;
+		animation: ringSpin 40s linear infinite;
+	}
+	.final .r2 {
+		stroke-opacity: 0.4;
+		stroke-width: 3;
+		stroke-dasharray: 200 50 14 50;
+		animation: ringSpin 22s linear infinite reverse;
+	}
+	.final .r3 {
+		stroke: #ff5fa2;
+		stroke-opacity: 0.7;
+		stroke-width: 4;
+		stroke-dasharray: 100 400;
+		animation: ringSpin 7s linear infinite;
+	}
+	@keyframes ringSpin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.final .rings circle {
+			animation: none;
+		}
 	}
 	.final > img {
 		position: absolute;
@@ -624,7 +678,7 @@ const faq = [
 		content: '';
 		position: absolute;
 		inset: 0;
-		background: radial-gradient(ellipse 60% 70% at 50% 60%, #3a3fbfcc, #2b2a9ad9 75%);
+		background: radial-gradient(circle at 50% 45%, #ff8fc4aa 0%, #b45fd688 25%, transparent 60%);
 	}
 	.final-text {
 		position: relative;

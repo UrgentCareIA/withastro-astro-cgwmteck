@@ -31,7 +31,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 
 		<!-- ====== DÉCOR ====== -->
 		<div class="bg" aria-hidden="true">
-			<img class="bg-city" src="/images/sunset.webp" alt="" />
+			<div class="bg-sky"></div>
 			<div class="bg-floor"><div class="bg-grid"></div></div>
 			<div class="searchlight s1"></div>
 			<div class="searchlight s2"></div>
@@ -1239,6 +1239,14 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		inset: 0;
 		z-index: -1;
 		pointer-events: none;
+	}
+	.bg-sky {
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(ellipse 70% 40% at 85% 6%, #ff5fa255, transparent 70%),
+			radial-gradient(ellipse 60% 40% at 8% 40%, #ffb37a33, transparent 70%),
+			radial-gradient(circle at 50% 100%, #ff8fc455, transparent 55%),
+			linear-gradient(180deg, #3346e0 0%, #4a3fd4 38%, #3a2fa6 72%, #2a2790 100%);
 	}
 	.bg-city {
 		position: absolute;
