@@ -31,7 +31,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 
 		<!-- ====== DÉCOR ====== -->
 		<div class="bg" aria-hidden="true">
-			<img class="bg-city" src="/images/nuit.webp" alt="" />
+			<img class="bg-city" src="/images/sunset.webp" alt="" />
 			<div class="bg-floor"><div class="bg-grid"></div></div>
 			<div class="searchlight s1"></div>
 			<div class="searchlight s2"></div>
@@ -301,7 +301,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 
 		<section class="confirm" id="confirm" hidden aria-labelledby="confirm-title" tabindex="-1">
 			<p class="confirm-badge"><i></i> Place confirmée</p>
-			<h1 id="confirm-title">Ton Village Pass est réservé.</h1>
+			<h1 id="confirm-title">Ton Village Pass est <span class="script">réservé !</span></h1>
 			<p class="confirm-lede">
 				Direction <strong>le Village Tech</strong>, en accès bêta. On active ton compte sur Higgsfield
 				et on t'envoie tout par mail dès que la porte s'ouvre.
@@ -822,7 +822,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		let speed = 2, running = true, skipped = false;
 		const draw = () => {
 			if (!running) return;
-			ctx.fillStyle = 'rgba(2,5,12,0.35)';
+			ctx.fillStyle = 'rgba(40,46,170,0.35)';
 			ctx.fillRect(0, 0, innerWidth, innerHeight);
 			for (const s of stars) {
 				const pz = s.z;
@@ -1192,10 +1192,10 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 <style>
 	/* ================= BASE ================= */
 	:global(body) {
-		background: #04070f;
+		background: #3346e0;
 	}
 	.portal {
-		--glass: #0b1530b3;
+		--glass: #2b2d8fb3;
 		--edge: #8ec5ff3d;
 		--mono: 'JetBrains Mono', ui-monospace, monospace;
 		position: relative;
@@ -1247,8 +1247,8 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		height: 100%;
 		object-fit: cover;
 		object-position: 50% 25%;
-		opacity: 0.38;
-		filter: saturate(1.3) hue-rotate(-8deg);
+		opacity: 1;
+		filter: saturate(1.25) contrast(1.02);
 		transform: scale(1.06);
 		translate: calc(var(--px, 0) * -40px) calc(var(--py, 0) * -24px);
 		animation: drift 40s ease-in-out infinite alternate;
@@ -1273,8 +1273,8 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		inset: 0;
 		transform: rotateX(68deg);
 		transform-origin: 50% 0;
-		background-image: linear-gradient(#3b82f655 1px, transparent 1px),
-			linear-gradient(90deg, #3b82f655 1px, transparent 1px);
+		background-image: linear-gradient(#ffffff55 1px, transparent 1px),
+			linear-gradient(90deg, #ffffff55 1px, transparent 1px);
 		background-size: 64px 64px;
 		animation: grid 3.5s linear infinite;
 	}
@@ -1296,7 +1296,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		width: 60vw;
 		height: 90%;
 		transform: translateX(-50%);
-		background: radial-gradient(ellipse at 50% 0%, #3b82f640, transparent 65%);
+		background: radial-gradient(ellipse at 50% 0%, #ff5fa233, transparent 65%);
 	}
 	.bg-scan {
 		position: absolute;
@@ -1324,7 +1324,8 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	.bg-vignette {
 		position: absolute;
 		inset: 0;
-		background: radial-gradient(ellipse 85% 75% at 50% 45%, transparent 35%, #04070fee 100%);
+		background: linear-gradient(180deg, #3346e0aa 0%, #4a3fd433 30%, #5a3fc444 60%, #2f2a9ecc 100%),
+			radial-gradient(ellipse 85% 75% at 50% 45%, transparent 45%, #2b2a9a99 100%);
 	}
 
 	/* ================= HUD ================= */
@@ -1337,7 +1338,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	}
 	.hud-top {
 		border-bottom: 1px solid #8ec5ff1a;
-		background: linear-gradient(180deg, #04070fcc, transparent);
+		background: linear-gradient(180deg, #3346e0cc, transparent);
 	}
 	.hud-brand {
 		display: flex;
@@ -1510,9 +1511,9 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		text-align: left;
 		display: flex;
 		flex-direction: column;
-		background: linear-gradient(155deg, #16285099 0%, #0a1430e6 55%, #060c1ef2 100%);
-		border: 1px solid #8ec5ff55;
-		box-shadow: 0 0 0 1px #ffffff0d inset, 0 30px 80px -20px #000, 0 0 60px -10px #3b82f688;
+		background: linear-gradient(155deg, #ffffff40 0%, #6a5cffb3 45%, #3a2fa8e6 100%);
+		border: 1px solid #ffffff66;
+		box-shadow: 0 0 0 1px #ffffff22 inset, 0 30px 80px -20px #1a166099, 0 0 70px -10px #ff5fa277;
 		backdrop-filter: blur(16px);
 		transform: rotateX(var(--rx)) rotateY(var(--ry));
 		transform-style: preserve-3d;
@@ -1530,7 +1531,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	}
 	.pass[data-state='valide'] {
 		--state: #34c76f;
-		box-shadow: 0 0 0 1px #ffffff0d inset, 0 30px 80px -20px #000, 0 0 80px -6px #34c76f88;
+		box-shadow: 0 0 0 1px #ffffff22 inset, 0 30px 80px -20px #1a166099, 0 0 80px -6px #3ee07f99;
 	}
 	.pass[data-state='refuse'] {
 		--state: #ff8a7a;
@@ -1646,7 +1647,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		border-radius: 50%;
 		display: grid;
 		place-items: center;
-		background: #0a1430;
+		background: #3a2fa8;
 		font-family: var(--font-display);
 		font-weight: 800;
 		font-size: 1.6rem;
@@ -1758,11 +1759,11 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	.console {
 		position: relative;
 		padding: clamp(22px, 3.5vw, 40px);
-		background: linear-gradient(180deg, #0e1b3ccc, #070f24e6);
+		background: linear-gradient(180deg, #ffffff2e, #4a3fd4b3 40%, #2f2a9ee6);
 		border: 1px solid var(--edge);
 		border-radius: 8px;
 		backdrop-filter: blur(20px) saturate(1.2);
-		box-shadow: 0 0 0 1px #ffffff08 inset, 0 40px 120px -40px #000, 0 0 80px -30px #3b82f6aa;
+		box-shadow: 0 0 0 1px #ffffff22 inset, 0 40px 120px -40px #1a1660, 0 0 90px -30px #ff5fa288;
 		clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px));
 	}
 	@keyframes rise {
@@ -1813,7 +1814,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		grid-template-columns: 1fr 1fr;
 		padding: 4px;
 		border-radius: 12px;
-		background: #04070f99;
+		background: #1e227866;
 		border: 1px solid #8ec5ff26;
 		margin-bottom: 28px;
 	}
@@ -1843,7 +1844,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		left: 4px;
 		width: calc(50% - 4px);
 		border-radius: 9px;
-		background: linear-gradient(180deg, #3b82f6, #2563eb);
+		background: linear-gradient(90deg, #4f7cff, #7b5cff);
 		box-shadow: 0 0 24px #3b82f6aa;
 		transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 	}
@@ -1868,7 +1869,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
-		color: #a6b1c488;
+		color: #ffffff99;
 		transition: color 0.3s;
 	}
 	.steps li b {
@@ -1954,7 +1955,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		width: 100%;
 		font: 400 1.02rem var(--font-body);
 		color: var(--ink);
-		background: #04070f8c;
+		background: #ffffff1a;
 		border: 1px solid #8ec5ff2e;
 		border-radius: 10px;
 		padding: 24px 16px 10px;
@@ -1993,7 +1994,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	.field textarea:focus {
 		outline: none;
 		border-color: var(--sky);
-		background: #0a1430cc;
+		background: #ffffff26;
 		box-shadow: 0 0 0 4px #3b82f626, 0 0 30px -6px #3b82f6aa;
 	}
 	.field input:not(:placeholder-shown):valid,
@@ -2043,7 +2044,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		padding: 14px;
 		border-radius: 10px;
 		border: 1px solid #8ec5ff2e;
-		background: #04070f8c;
+		background: #ffffff1a;
 		font-size: 0.78rem;
 		color: var(--ink-dim);
 		transition: all 0.2s;
@@ -2090,7 +2091,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		margin-top: 1px;
 		border-radius: 5px;
 		border: 1px solid #8ec5ff66;
-		background: #04070f8c;
+		background: #ffffff1a;
 		display: grid;
 		place-items: center;
 		transition: all 0.2s;
@@ -2147,7 +2148,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		cursor: pointer;
 		color: #fff;
 		font: 700 1rem var(--font-display);
-		background: linear-gradient(180deg, #4b8ff8, #2563eb);
+		background: linear-gradient(90deg, #4f7cff, #7b5cff 60%, #ff5fa2);
 		box-shadow: 0 0 0 1px #8ec5ff66 inset, 0 10px 40px -8px #3b82f6;
 		overflow: hidden;
 		transition: transform 0.15s, box-shadow 0.25s;
@@ -2394,7 +2395,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		z-index: 100;
 		display: grid;
 		place-items: center;
-		background: radial-gradient(ellipse at center, #0b1a3d 0%, #02050c 70%);
+		background: radial-gradient(ellipse at center, #5b4ee6 0%, #3346e0 40%, #1e2278 85%);
 		cursor: pointer;
 		transition: opacity 0.7s, transform 0.9s cubic-bezier(0.7, 0, 0.3, 1);
 	}
@@ -2606,7 +2607,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		top: 14%;
 		left: -140px;
 		width: 120px;
-		fill: #0d1a33;
+		fill: #3a3fbf;
 		stroke: #8ec5ff55;
 		stroke-width: 1;
 		filter: drop-shadow(0 0 8px #3b82f644);
@@ -2678,7 +2679,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		padding: 6px 12px;
 		border-radius: 999px;
 		border: 1px solid #8ec5ff33;
-		background: #04070f88;
+		background: #ffffff1f;
 		color: var(--ink-dim);
 		font: 500 0.68rem var(--mono);
 		letter-spacing: 0.14em;
@@ -2943,7 +2944,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		padding: 16px 18px;
 		margin-bottom: 62px;
 		border-radius: 14px 14px 14px 4px;
-		background: linear-gradient(180deg, #12244acc, #0a1430e6);
+		background: linear-gradient(180deg, #6a5cffcc, #3a2fa8e6);
 		border: 1px solid #8ec5ff55;
 		box-shadow: 0 0 30px -8px #3b82f6aa;
 		backdrop-filter: blur(12px);
@@ -2956,7 +2957,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		bottom: -9px;
 		width: 16px;
 		height: 16px;
-		background: #0a1430;
+		background: #3a2fa8;
 		border-right: 1px solid #8ec5ff55;
 		border-bottom: 1px solid #8ec5ff55;
 		transform: rotate(45deg);
@@ -2970,7 +2971,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		font-size: 0.64rem;
 		text-transform: uppercase;
 		letter-spacing: 0.18em;
-		color: var(--sky);
+		color: #ffffffd9;
 	}
 	.live {
 		width: 6px;
@@ -3061,7 +3062,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		white-space: nowrap;
 		border-radius: 999px;
 		border: 2px solid #34c76f;
-		background: #0a1220e6;
+		background: #1e2278e6;
 		color: #fff;
 		font: 600 0.95rem var(--font-body);
 		box-shadow: 0 0 18px -2px #34c76f88;
@@ -3187,7 +3188,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		margin-bottom: 22px;
 		padding: 12px 14px;
 		border-radius: 12px;
-		background: #04070f8c;
+		background: #ffffff1a;
 		border: 1px solid #8ec5ff2e;
 		min-height: 92px;
 	}
@@ -3258,6 +3259,18 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		background: var(--online);
 		box-shadow: 0 0 10px var(--online);
 	}
+	.confirm::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: radial-gradient(ellipse 55% 45% at 50% 30%, #2f2a9ecc, transparent 75%);
+	}
+	.confirm h1,
+	.confirm-lede,
+	.confirm-bye {
+		text-shadow: 0 2px 24px #1e2278;
+	}
 	.confirm h1 {
 		font-size: clamp(2.2rem, 5.4vw, 4.2rem);
 		margin: 0 0 14px;
@@ -3267,7 +3280,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		max-width: 620px;
 		margin: 0 0 34px;
 		font-size: clamp(1rem, 1.6vw, 1.2rem);
-		color: var(--ink-dim);
+		color: #f1f3ff;
 		animation: confIn 0.8s 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 	}
 	.confirm-lede strong {

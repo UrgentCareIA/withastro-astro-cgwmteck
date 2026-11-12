@@ -31,14 +31,14 @@ const faq = [
 <Layout>
 	<!-- HERO -->
 	<section class="hero">
-		<img class="hero-bg" src="/images/hero.webp" alt="La tour du Village Tech au coucher du soleil, avec un dirigeable" fetchpriority="high" />
+		<img class="hero-bg" src="/images/sunset.webp" alt="Le Campus du Village Tech au coucher du soleil, au bord de la mer" fetchpriority="high" />
 		<div class="hero-fade" aria-hidden="true"></div>
 		<div class="wrap hero-inner">
-			<p class="eyebrow">Bêta gratuite · places limitées</p>
-			<h1>Le siège social numérique de ton entreprise.</h1>
+			<p class="eyebrow">Play · Build · Collaborate</p>
+			<h1>La bêta est <span class="script">lancée !</span></h1>
 			<p class="lede">
-				Le Village Tech est un monde en 3D où toute ton équipe travaille, se croise et se parle.
-				Comme au bureau, sans le trajet.
+				Le Village Tech, c’est le siège social numérique de ton entreprise : un monde en 3D où
+				ton équipe travaille, se croise et se parle. Gratuit pendant toute la bêta.
 			</p>
 			<div class="cta-row">
 				<a href="/acces" class="btn">Demander mon accès bêta →</a>
@@ -171,10 +171,10 @@ const faq = [
 	<!-- CTA FINAL -->
 	<section class="section wrap">
 		<div class="final">
-			<img src="/images/nuit.webp" alt="" loading="lazy" />
+			<img src="/images/hero.webp" alt="" loading="lazy" />
 			<div class="final-text">
 				<img class="final-logo" src="/images/logo.png" alt="" width="84" height="84" />
-				<h2>Le Village ne dort jamais.</h2>
+				<h2>Les portes sont <span class="script">ouvertes !</span></h2>
 				<p>Ton siège en 3D, ouvert à toute heure. Les places de la bêta sont limitées.</p>
 				<a href="/acces" class="btn">Ouvrir le portail d'accès →</a>
 			</div>
@@ -243,8 +243,8 @@ const faq = [
 	.hero-fade {
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(180deg, #080e1c66 0%, #080e1c00 22%, #080e1c99 45%, #080e1cee 72%, var(--bg) 100%),
-			linear-gradient(90deg, #080e1caa 0%, transparent 65%);
+		background: linear-gradient(180deg, #3346e055 0%, #3346e000 25%, #4a3fd422 45%, #3d33b8bb 75%, #3d36c0 100%),
+			linear-gradient(90deg, #2b2fa877 0%, transparent 60%);
 	}
 	.hero-inner {
 		position: relative;
@@ -252,14 +252,27 @@ const faq = [
 		padding-bottom: 72px;
 	}
 	.hero h1 {
-		font-size: clamp(2.6rem, 7vw, 5.6rem);
+		font-size: clamp(2.8rem, 8vw, 6.4rem);
 		max-width: 900px;
+		text-shadow: 0 4px 40px #3346e099, 0 0 2px #ffffff55;
+	}
+	.hero .eyebrow {
+		color: #fff;
+		letter-spacing: 0.42em;
+		text-shadow: 0 2px 14px #2b2fa8cc;
+	}
+	.hero h1 .script {
+		font-size: 1.12em;
+		margin-left: 0.1em;
+		color: #fff;
+		text-shadow: 0 0 30px #ff5fa288;
 	}
 	.lede {
 		max-width: 560px;
 		font-size: 1.18rem;
-		color: #d6deea;
+		color: #f1f3ff;
 		margin: 0;
+		text-shadow: 0 2px 20px #2b2fa8aa;
 	}
 	.cta-row {
 		display: flex;
@@ -307,7 +320,7 @@ const faq = [
 		align-items: center;
 		justify-content: center;
 		border: 0;
-		background: radial-gradient(circle at 50% 50%, #080e1c33, #080e1c88);
+		background: radial-gradient(circle at 50% 50%, #3346e022, #2b2a9a77);
 		cursor: pointer;
 	}
 	.film-play span {
@@ -493,7 +506,7 @@ const faq = [
 		content: '';
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(180deg, transparent 25%, #080e1cd9 58%, #080e1c 92%);
+		background: linear-gradient(180deg, transparent 25%, #2f2a9ed9 62%, #2a2790 92%);
 	}
 	.wide-text {
 		position: absolute;
@@ -524,8 +537,10 @@ const faq = [
 		gap: 16px;
 	}
 	.step {
-		background: linear-gradient(180deg, var(--bg-3), var(--bg-2));
-		border: 1px solid var(--line);
+		background: linear-gradient(180deg, #ffffff26, #ffffff0d);
+		backdrop-filter: blur(14px);
+		box-shadow: 0 20px 50px -30px #1a1660;
+		border: 1px solid #ffffff38;
 		border-radius: var(--radius);
 		padding: 28px 26px;
 	}
@@ -609,7 +624,7 @@ const faq = [
 		content: '';
 		position: absolute;
 		inset: 0;
-		background: radial-gradient(ellipse 60% 70% at 50% 55%, #0b1a3dcc, #080e1cee 70%);
+		background: radial-gradient(ellipse 60% 70% at 50% 60%, #3a3fbfcc, #2b2a9ad9 75%);
 	}
 	.final-text {
 		position: relative;
