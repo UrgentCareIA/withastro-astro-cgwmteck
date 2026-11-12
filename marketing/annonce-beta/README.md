@@ -1,6 +1,6 @@
 # Kit d'annonce de la bêta
 
-Teaser vidéo (24 s) + carrousel Instagram (5 images) + image Story, dans la DA du Village Tech.
+Teaser vidéo (24 s) + carrousel Instagram (5 images) + image Story, dans la DA « golden hour » du Village Tech : ciel bleu roi, violet et rose, accents manuscrits.
 
 | Fichier | Rôle |
 |---|---|
@@ -16,12 +16,13 @@ Depuis ce dossier, avec Node, Python 3 (numpy), ffmpeg et Playwright :
 
 ```sh
 mkdir -p a out/carrousel
-cp ../../public/images/{hero,nuit,poste,reunion,academie,amphi,marche,collegues,rencontre,vpro,enzo}.webp \
+cp ../../public/images/{sunset,hero,poste,reunion,academie,amphi,marche,collegues,rencontre,vpro,enzo}.webp \
    ../../public/images/logo-v.svg ../../public/images/logo-512.png a/
-npm i @fontsource/plus-jakarta-sans@5.0.20 @fontsource/space-grotesk@5.0.18 @fontsource/jetbrains-mono@5.0.20
+npm i @fontsource/plus-jakarta-sans@5.0.20 @fontsource/space-grotesk@5.0.18 @fontsource/jetbrains-mono@5.0.20 @fontsource/kaushan-script@5.0.12
 cp node_modules/@fontsource/plus-jakarta-sans/files/plus-jakarta-sans-latin-{700,800}-normal.woff2 \
    node_modules/@fontsource/space-grotesk/files/space-grotesk-latin-{500,600}-normal.woff2 \
-   node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-600-normal.woff2 a/
+   node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-600-normal.woff2 \
+   node_modules/@fontsource/kaushan-script/files/kaushan-script-latin-400-normal.woff2 a/
 python3 music.py out/music.wav
 node render.cjs "$PWD" "$PWD/out/teaser-4x5.mp4"
 node stills.cjs "$PWD"
@@ -30,7 +31,7 @@ node stills.cjs "$PWD"
 Version 9:16 (Reels / Stories) à partir du 4:5 :
 
 ```sh
-ffmpeg -i out/teaser-4x5.mp4 -filter_complex "[0:v]split[a][b];[a]scale=1536:1920,boxblur=40:2,eq=brightness=-0.18:saturation=1.2,crop=1080:1920[bg];[bg][b]overlay=0:285[v]" \
+ffmpeg -i out/teaser-4x5.mp4 -filter_complex "[0:v]split[a][b];[a]scale=1536:1920,boxblur=40:2,eq=brightness=-0.05:saturation=1.3,crop=1080:1920[bg];[bg][b]overlay=0:285[v]" \
   -map "[v]" -map 0:a -c:v libx264 -crf 18 -pix_fmt yuv420p -c:a copy out/teaser-9x16.mp4
 ```
 

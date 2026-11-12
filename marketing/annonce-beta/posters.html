@@ -7,58 +7,62 @@
 @font-face { font-family: 'Jakarta'; font-weight: 800; src: url(a/plus-jakarta-sans-latin-800-normal.woff2) format('woff2'); }
 @font-face { font-family: 'Grotesk'; font-weight: 500; src: url(a/space-grotesk-latin-500-normal.woff2) format('woff2'); }
 @font-face { font-family: 'Grotesk'; font-weight: 600; src: url(a/space-grotesk-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Script'; font-weight: 400; src: url(a/kaushan-script-latin-400-normal.woff2) format('woff2'); }
 @font-face { font-family: 'Mono'; font-weight: 600; src: url(a/jetbrains-mono-latin-600-normal.woff2) format('woff2'); }
 :root { --sky: #8ec5ff; --blue: #3b82f6; --sunset: #e98a6b; --ok: #34c76f; --ink: #f3f6fb; --dim: #a6b1c4; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #050a16; color: var(--ink); font-family: 'Grotesk', sans-serif; -webkit-font-smoothing: antialiased; }
-.art { position: relative; width: 1080px; height: 1350px; overflow: hidden; background: radial-gradient(ellipse 90% 60% at 50% 0%, #10204a, #050a16 70%); display: none; }
+body { background: #3346e0; color: var(--ink); font-family: 'Grotesk', sans-serif; -webkit-font-smoothing: antialiased; }
+.art { position: relative; width: 1080px; height: 1350px; overflow: hidden; background: radial-gradient(ellipse 70% 40% at 85% 5%, #ff5fa255, transparent 70%), radial-gradient(ellipse 60% 40% at 10% 40%, #ffb37a33, transparent 70%), linear-gradient(180deg, #3346e0 0%, #4a3fd4 35%, #3a2fa6 70%, #2a2790 100%); display: none; }
 .art.story { height: 1920px; }
 .art.on { display: block; }
 h1, h2 { font-family: 'Jakarta'; font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; }
 .mono { font-family: 'Mono'; letter-spacing: 0.22em; text-transform: uppercase; }
-.accent { display: block; width: 120px; height: 5px; border-radius: 5px; background: linear-gradient(90deg, var(--sky), var(--sunset)); }
-.hl { background: linear-gradient(90deg, #ffffff, var(--sky)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.accent { display: block; width: 120px; height: 5px; border-radius: 5px; background: linear-gradient(90deg, var(--sky), #ff5fa2, #ffb37a); }
+.script { font-family: 'Script'; font-weight: 400; letter-spacing: 0; display: inline-block; position: relative; transform: rotate(-4deg); color: #fff; text-shadow: 0 0 40px #ff5fa288; padding: 0 0.06em; }
+.script::after { content: ''; position: absolute; left: 4%; right: 6%; bottom: -0.1em; height: 0.085em; border-radius: 99px; background: linear-gradient(90deg, #ff5fa2, #ff7a7a, #ffb37a); box-shadow: 0 0 20px #ff5fa2aa; }
+h1, h2 { text-shadow: 0 4px 40px #1e227888; }
+.hl { background: linear-gradient(90deg, #ffffff, #ffd6ec); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .brand { position: absolute; left: 64px; top: 56px; z-index: 5; display: flex; align-items: center; gap: 18px; font-size: 25px; font-weight: 600; letter-spacing: 0.32em; text-transform: uppercase; }
 .brand img { width: 56px; height: 56px; border-radius: 14px; }
-.count { position: absolute; right: 64px; top: 66px; z-index: 5; font-family: 'Mono'; font-size: 34px; letter-spacing: 0.12em; color: var(--sky); }
-.vig { position: absolute; inset: 0; pointer-events: none; z-index: 4; background: radial-gradient(ellipse 85% 75% at 50% 45%, transparent 55%, #02050ccc 100%); }
+.count { position: absolute; right: 64px; top: 66px; z-index: 5; font-family: 'Mono'; font-size: 34px; letter-spacing: 0.12em; color: #fff; }
+.vig { position: absolute; inset: 0; pointer-events: none; z-index: 4; background: radial-gradient(ellipse 85% 75% at 50% 45%, transparent 60%, #2a279088 100%); }
 .photo { position: absolute; left: 0; top: 0; width: 1080px; overflow: hidden; -webkit-mask-image: linear-gradient(180deg, #000 65%, transparent); mask-image: linear-gradient(180deg, #000 65%, transparent); }
 .photo img { width: 100%; height: 100%; object-fit: cover; }
-.bgblur { position: absolute; inset: -60px; background-size: cover; background-position: center; filter: blur(40px) brightness(0.45) saturate(1.3); }
+.bgblur { position: absolute; inset: -60px; background-size: cover; background-position: center; filter: blur(40px) brightness(0.85) saturate(1.4); }
 .txt { position: absolute; left: 72px; right: 72px; display: grid; gap: 26px; z-index: 3; }
-.eyebrow { font-size: 26px; color: var(--sky); }
-.sub { font-size: 38px; color: #d6deea; font-weight: 500; line-height: 1.3; }
-.pill { display: inline-flex; align-items: center; gap: 14px; padding: 18px 34px; border-radius: 99px; border: 2px solid #ffffff3a; background: #ffffff10; font-size: 32px; font-weight: 600; }
-.cta { display: inline-flex; align-items: center; gap: 18px; padding: 30px 60px; border-radius: 99px; font: 800 44px 'Jakarta'; color: #fff; background: linear-gradient(180deg, #4b8ff8, #2563eb); box-shadow: 0 0 0 14px #3b82f622, 0 10px 80px 0 #3b82f6; }
+.eyebrow { font-size: 26px; color: #fff; }
+.sub { font-size: 38px; color: #fff; font-weight: 500; line-height: 1.3; text-shadow: 0 2px 20px #1e2278; }
+.pill { display: inline-flex; align-items: center; gap: 14px; padding: 18px 34px; border-radius: 99px; border: 2px solid #ffffff77; background: #ffffff26; font-size: 32px; font-weight: 600; }
+.cta { display: inline-flex; align-items: center; gap: 18px; padding: 30px 60px; border-radius: 99px; font: 800 44px 'Jakarta'; color: #fff; background: linear-gradient(90deg, #4f7cff, #7b5cff 60%, #ff5fa2); border: 2px solid #ffffff66; box-shadow: 0 0 0 14px #ffffff22, 0 10px 80px 0 #ff5fa2; }
 
 /* 2 : mosaïque */
 .grid6 { position: absolute; left: 64px; right: 64px; top: 480px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.tile { position: relative; height: 240px; border-radius: 22px; overflow: hidden; border: 1.5px solid #8ec5ff44; }
+.tile { position: relative; height: 240px; border-radius: 22px; overflow: hidden; border: 3px solid #ffffff55; box-shadow: 0 20px 50px -20px #1a1660; }
 .tile img { width: 100%; height: 100%; object-fit: cover; }
-.tile::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, #050a16e6); }
+.tile::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, #2f2a9ee6); }
 .tile span { position: absolute; left: 20px; bottom: 16px; z-index: 1; font: 800 32px 'Jakarta'; letter-spacing: -0.02em; }
 
 /* 5 : étapes */
 .steps { position: absolute; left: 72px; right: 72px; top: 470px; display: grid; gap: 22px; }
-.step { display: grid; grid-template-columns: 110px 1fr; gap: 26px; align-items: center; padding: 30px 34px; border-radius: 26px; background: linear-gradient(180deg, #14224acc, #0b1530cc); border: 1.5px solid #8ec5ff40; }
-.step b { font: 600 52px 'Mono'; color: var(--sky); }
+.step { display: grid; grid-template-columns: 110px 1fr; gap: 26px; align-items: center; padding: 30px 34px; border-radius: 26px; background: linear-gradient(180deg, #ffffff30, #ffffff12); border: 2px solid #ffffff55; box-shadow: 0 20px 50px -25px #1a1660; }
+.step b { font: 600 52px 'Mono'; color: #ffd6ec; }
 .step h3 { font: 800 44px 'Jakarta'; letter-spacing: -0.02em; margin-bottom: 6px; }
-.step p { font-size: 28px; color: var(--dim); }
+.step p { font-size: 28px; color: #e6e9ff; }
 </style>
 </head>
 <body>
 
 <!-- 1 · couverture -->
 <section class="art" id="a1">
-	<div class="bgblur" style="background-image:url(a/nuit.webp)"></div>
-	<div class="photo" style="height:980px"><img src="a/nuit.webp" style="transform:scale(1.08);transform-origin:50% 35%"></div>
+	<div class="bgblur" style="background-image:url(a/sunset.webp)"></div>
+	<div class="photo" style="height:1000px"><img src="a/sunset.webp" style="transform:scale(1.02);transform-origin:50% 40%"></div>
+	<div style="position:absolute;inset:0;background:linear-gradient(180deg,#3346e033 0%,transparent 25%,transparent 45%,#4a3fd4d9 68%,#3a2fa6 100%)"></div>
 	<div class="brand"><img src="a/logo-512.png">Le Village Tech</div>
 	<p class="count">01 / 05</p>
 	<div class="txt" style="bottom:110px">
-		<p class="eyebrow mono">Bêta privée · gratuite</p>
-		<span class="accent"></span>
-		<h1 style="font-size:132px">La bêta<br><span class="hl">est ouverte.</span></h1>
-		<p class="sub">Le siège social numérique de ton entreprise.</p>
+		<p class="eyebrow mono">Play · Build · Collaborate</p>
+		<h1 style="font-size:150px">La bêta est<br><span class="script" style="font-size:1.15em">lancée !</span></h1>
+		<p class="sub">Ton siège social dans un jeu vidéo. Gratuit pendant la bêta.</p>
 		<div><span class="pill">Glisse →</span></div>
 	</div>
 	<div class="vig"></div>
@@ -70,7 +74,7 @@ h1, h2 { font-family: 'Jakarta'; font-weight: 800; letter-spacing: -0.035em; lin
 	<p class="count">02 / 05</p>
 	<div class="txt" style="top:170px">
 		<span class="accent"></span>
-		<h2 style="font-size:92px">Un Campus pour bosser,<br><span class="hl">apprendre, pitcher.</span></h2>
+		<h2 style="font-size:80px">Un Campus pour bosser,<br><span class="hl">apprendre, pitcher.</span></h2>
 	</div>
 	<div class="grid6">
 		<div class="tile"><img src="a/poste.webp"><span>Ton poste</span></div>
@@ -84,12 +88,12 @@ h1, h2 { font-family: 'Jakarta'; font-weight: 800; letter-spacing: -0.035em; lin
 </section>
 
 <!-- 5 · comment entrer -->
-<section class="art" id="a5" style="background: radial-gradient(circle at 50% 30%, #1a3a8a 0%, #0b1a3d 38%, #050a16 78%)">
+<section class="art" id="a5" style="background: radial-gradient(circle at 50% 85%, #ff8fc4 0%, #b45fd6 25%, #5b4ee6 55%, #3346e0 85%)">
 	<div class="brand"><img src="a/logo-512.png">Le Village Tech</div>
 	<p class="count">05 / 05</p>
 	<div class="txt" style="top:170px">
 		<span class="accent"></span>
-		<h2 style="font-size:100px">Comment <span class="hl">entrer.</span></h2>
+		<h2 style="font-size:100px">Comment <span class="script">entrer ?</span></h2>
 	</div>
 	<div class="steps">
 		<div class="step"><b>01</b><div><h3>Demande ton accès</h3><p>Deux minutes, lien en bio.</p></div></div>
@@ -98,7 +102,7 @@ h1, h2 { font-family: 'Jakarta'; font-weight: 800; letter-spacing: -0.035em; lin
 	</div>
 	<div style="position:absolute;left:0;right:0;bottom:120px;display:grid;justify-items:center;gap:26px;z-index:3">
 		<span class="cta">Lien en bio →</span>
-		<p class="mono" style="font-size:24px;color:var(--sky)">Places limitées</p>
+		<p class="mono" style="font-size:24px;color:#fff">Places limitées</p>
 	</div>
 	<div class="vig"></div>
 </section>
@@ -107,12 +111,12 @@ h1, h2 { font-family: 'Jakarta'; font-weight: 800; letter-spacing: -0.035em; lin
 <section class="art story" id="a6">
 	<div class="bgblur" style="background-image:url(a/hero.webp)"></div>
 	<div class="photo" style="height:1250px"><img src="a/hero.webp" style="transform:scale(1.02)"></div>
-	<div style="position:absolute;inset:0;background:linear-gradient(180deg,#050a1688 0%,transparent 20%,transparent 45%,#050a16f0 70%)"></div>
+	<div style="position:absolute;inset:0;background:linear-gradient(180deg,#3346e066 0%,transparent 20%,transparent 42%,#4a3fd4e0 66%,#3a2fa6 100%)"></div>
 	<div class="brand" style="top:140px"><img src="a/logo-512.png">Le Village Tech</div>
 	<div class="txt" style="bottom:300px">
 		<p class="eyebrow mono">Bêta privée · gratuite</p>
 		<span class="accent"></span>
-		<h1 style="font-size:132px">La bêta<br><span class="hl">est ouverte.</span></h1>
+		<h1 style="font-size:150px">La bêta est<br><span class="script" style="font-size:1.15em">lancée !</span></h1>
 		<p class="sub">Ton siège social dans un jeu vidéo.</p>
 		<div style="margin-top:20px"><span class="cta">Demande ton accès →</span></div>
 	</div>
