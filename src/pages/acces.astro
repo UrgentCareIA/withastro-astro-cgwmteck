@@ -9,11 +9,39 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	description="Demande ton accès à la bêta gratuite du Village Tech, ou vérifie si ton compte est validé."
 	bare
 >
-	<div class="portal" data-higgsfield={higgsfieldUrl}>
+	<div class="portal pre" data-higgsfield={higgsfieldUrl}>
+		<!-- ====== INTRO ====== -->
+		<div class="intro" id="intro" aria-hidden="true">
+			<canvas id="warp"></canvas>
+			<div class="intro-core">
+				<svg class="intro-logo" viewBox="0 0 100 100">
+					<path class="v-l" d="M8 18 H30 L52 60 V90 Z" />
+					<path class="v-r" d="M92 18 H70 L52 54 V90 Z" />
+					<path class="v-s" d="M57 18 H69 L59 36 H47 Z" />
+				</svg>
+				<p class="intro-title">Le Village Tech</p>
+				<p class="intro-sub mono" id="intro-sub">Ouverture du portail</p>
+				<div class="intro-bar"><span></span></div>
+			</div>
+			<p class="intro-skip mono">Cliquer pour passer</p>
+		</div>
+		<div class="flash" id="flash" aria-hidden="true"></div>
+		<div class="cursor-glow" id="glow" aria-hidden="true"></div>
+		<canvas class="fx" id="fx" aria-hidden="true"></canvas>
+
 		<!-- ====== DÉCOR ====== -->
 		<div class="bg" aria-hidden="true">
 			<img class="bg-city" src="/images/nuit.webp" alt="" />
 			<div class="bg-floor"><div class="bg-grid"></div></div>
+			<div class="searchlight s1"></div>
+			<div class="searchlight s2"></div>
+			<svg class="airship" viewBox="0 0 120 40">
+				<ellipse cx="58" cy="16" rx="46" ry="13" />
+				<path d="M100 16 L116 6 V26 Z" />
+				<rect x="46" y="27" width="22" height="6" rx="2" />
+				<circle class="air-light" cx="14" cy="16" r="2" />
+			</svg>
+			<i class="star-shoot a"></i><i class="star-shoot b"></i><i class="star-shoot c"></i>
 			<canvas class="bg-particles" id="particles"></canvas>
 			<div class="bg-beam"></div>
 			<div class="bg-scan"></div>
@@ -29,6 +57,9 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 			<p class="hud-center mono"><span class="blink">◆</span> Portail d'accès · Bêta</p>
 			<div class="hud-right mono">
 				<span class="sys"><i class="dot"></i> Système en ligne</span>
+				<button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Activer le son">
+					<span class="eq"><i></i><i></i><i></i><i></i></span> Son
+				</button>
 				<time id="clock">--:--:--</time>
 			</div>
 		</header>
@@ -90,6 +121,9 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 			<section class="console" aria-label="Accès au Village">
 				<span class="corner tl"></span><span class="corner tr"></span>
 				<span class="corner bl"></span><span class="corner br"></span>
+				<span class="run run-t" aria-hidden="true"></span>
+				<span class="run run-b" aria-hidden="true"></span>
+				<span class="wipe" aria-hidden="true"></span>
 
 				<div class="boot mono" id="boot" aria-hidden="true"></div>
 
@@ -212,7 +246,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 
 				<!-- ---------- DÉJÀ INSCRIT ---------- -->
 				<div class="panel" id="panel-log" role="tabpanel" aria-labelledby="tab-log" hidden>
-					<p class="intro">
+					<p class="log-intro">
 						Entre l'email et le pseudo Higgsfield de ta demande pour savoir où en est ton accès.
 					</p>
 					<form id="check-form" novalidate>
@@ -250,12 +284,22 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	</div>
 </Layout>
 
+<script is:inline>
+	setTimeout(function () {
+		var p = document.querySelector('.portal');
+		if (p) p.classList.remove('pre');
+		var i = document.getElementById('intro');
+		if (i) i.remove();
+	}, 7000);
+</script>
+
 <script>
 	const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
 	const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
 	const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 	const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 	const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+	const emit = (name: string, detail?: unknown) => document.dispatchEvent(new CustomEvent(name, { detail }));
 
 	/* ---------- horloge ---------- */
 	const clock = $('clock');
@@ -281,45 +325,6 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 			p.insertAdjacentHTML('beforeend', ' <b>OK</b>');
 			await sleep(120);
 		}
-	})();
-
-	/* ---------- particules ---------- */
-	(() => {
-		const c = $<HTMLCanvasElement>('particles');
-		const ctx = c.getContext('2d');
-		if (!ctx || reduced) return;
-		let w = 0, h = 0;
-		const dpr = Math.min(devicePixelRatio || 1, 2);
-		const resize = () => {
-			w = c.clientWidth; h = c.clientHeight;
-			c.width = w * dpr; c.height = h * dpr;
-			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-		};
-		resize();
-		addEventListener('resize', resize);
-		const N = Math.min(90, Math.round(w / 14));
-		const pts = Array.from({ length: N }, () => ({
-			x: Math.random() * w, y: Math.random() * h,
-			r: Math.random() * 1.6 + 0.3, v: Math.random() * 0.35 + 0.08,
-			a: Math.random() * 0.6 + 0.2,
-		}));
-		const loop = () => {
-			if (!document.hidden) {
-				ctx.clearRect(0, 0, w, h);
-				for (const p of pts) {
-					p.y -= p.v;
-					if (p.y < -5) { p.y = h + 5; p.x = Math.random() * w; }
-					ctx.beginPath();
-					ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-					ctx.fillStyle = `rgba(142,197,255,${p.a})`;
-					ctx.shadowColor = '#3b82f6';
-					ctx.shadowBlur = 8;
-					ctx.fill();
-				}
-			}
-			requestAnimationFrame(loop);
-		};
-		loop();
 	})();
 
 	/* ---------- pass : inclinaison 3D ---------- */
@@ -365,21 +370,40 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 			}
 		svg.innerHTML = finder(0, 0) + finder(8, 0) + finder(0, 8) + out;
 	};
+	const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&@$<>/';
+	const scrambles = new WeakMap<HTMLElement, number>();
+	const scramble = (el: HTMLElement, text: string) => {
+		if (el.dataset.t === text) return;
+		el.dataset.t = text;
+		if (reduced) { el.textContent = text; return; }
+		cancelAnimationFrame(scrambles.get(el) ?? 0);
+		const start = performance.now(), dur = 380;
+		const frame = (t: number) => {
+			const k = Math.min(1, (t - start) / dur);
+			const fixed = Math.floor(text.length * k);
+			let out = text.slice(0, fixed);
+			for (let i = fixed; i < text.length; i++)
+				out += text[i] === ' ' ? ' ' : GLYPHS[(Math.random() * GLYPHS.length) | 0];
+			el.textContent = out;
+			if (k < 1) scrambles.set(el, requestAnimationFrame(frame));
+		};
+		scrambles.set(el, requestAnimationFrame(frame));
+	};
 	const val = (n: string) => String(new FormData(form).get(n) ?? '').trim();
 	const render = () => {
 		const first = val('first_name'), last = val('last_name');
 		const company = val('company'), sector = val('sector'), email = val('email');
 		const handle = val('higgsfield_username').replace(/^@/, '');
 		const stage = val('stage');
-		$('p-name').textContent = [first, last].filter(Boolean).join(' ') || 'Ton nom ici';
+		scramble($('p-name'), [first, last].filter(Boolean).join(' ') || 'Ton nom ici');
 		$('p-initials').textContent = ((first[0] ?? '') + (last[0] ?? '')).toUpperCase() || '?';
 		$('p-role').textContent = company ? `Fondateur · ${company}` : 'Entrepreneur';
 		$('p-handle').textContent = '@' + (handle || 'pseudo-higgsfield');
-		$('p-stage').textContent = STAGES[stage] ?? 'Stade —';
+		scramble($('p-stage'), STAGES[stage] ?? 'Stade —');
 		$('p-sector').textContent = sector || 'Secteur —';
 		const h = hash(email.toLowerCase() + handle.toLowerCase());
 		const hex = h.toString(16).toUpperCase().padStart(8, '0');
-		$('p-code').textContent = email ? `VT-${hex.slice(0, 4)}-${hex.slice(4)}` : 'VT-····-····';
+		scramble($('p-code'), email ? `VT-${hex.slice(0, 4)}-${hex.slice(4)}` : 'VT-····-····');
 		drawQR(email ? h : 7);
 		$('count').textContent = String(val('motivation').length);
 	};
@@ -388,6 +412,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 
 	const setStatus = (state: 'draft' | 'pending' | 'valide' | 'refuse', label: string) => {
 		pass.dataset.state = state;
+		emit('vt:status', state);
 		($('p-status').querySelector('span') as HTMLElement).textContent = label;
 	};
 
@@ -399,7 +424,9 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 			tabs[t].setAttribute('aria-selected', String(t === k));
 			panels[t].hidden = t !== k;
 		});
-		(document.querySelector('.tabs') as HTMLElement).dataset.active = k;
+		const tabsEl = document.querySelector('.tabs') as HTMLElement;
+		if (tabsEl.dataset.active !== k) emit('vt:tab', k);
+		tabsEl.dataset.active = k;
 	};
 	tabs.req.addEventListener('click', () => show('req'));
 	tabs.log.addEventListener('click', () => show('log'));
@@ -413,8 +440,9 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	const btnNext = $<HTMLButtonElement>('next'), btnBack = $<HTMLButtonElement>('back'), btnSubmit = $<HTMLButtonElement>('submit');
 	let step = 0;
 
-	const showError = (el: HTMLElement, msg: string) => { el.textContent = msg; el.hidden = false; };
+	const showError = (el: HTMLElement, msg: string) => { el.textContent = msg; el.hidden = false; emit('vt:error', el); };
 	const goStep = (n: number) => {
+		if (n !== step) emit('vt:step', n);
 		step = n;
 		sets.forEach((s, i) => s.classList.toggle('on', i === n));
 		stepLis.forEach((li, i) => { li.classList.toggle('on', i === n); li.classList.toggle('done', i < n); });
@@ -491,6 +519,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		const transmit = $('transmit'), line = $('transmit-line'), bar = $('transmit-bar');
 		form.hidden = true;
 		transmit.hidden = false;
+		emit('vt:transmit');
 		const anim = (async () => {
 			const msgs = ['Chiffrement de la demande…', 'Transmission au Campus…', 'Enregistrement du pass…'];
 			for (let i = 0; i < msgs.length; i++) {
@@ -517,6 +546,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 			document.querySelector('.steps')?.classList.add('complete');
 			$('progress').style.width = '100%';
 			setStatus('pending', 'En attente de validation');
+			emit('vt:success');
 			($('c-email') as HTMLInputElement).value = payload.email ?? '';
 			($('c-handle') as HTMLInputElement).value = payload.higgsfield_username ?? '';
 		} catch (err) {
@@ -583,6 +613,341 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	});
 </script>
 
+<script>
+	/* =========================================================
+	   EFFETS IMMERSIFS : intro, décor, particules, sons
+	   ========================================================= */
+	const reducedFx = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
+	const portal = document.querySelector('.portal') as HTMLElement;
+	const byId = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+	const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+	const store = {
+		get: (k: string) => { try { return sessionStorage.getItem(k) ?? localStorage.getItem(k); } catch { return null; } },
+		setSession: (k: string, v: string) => { try { sessionStorage.setItem(k, v); } catch {} },
+		setLocal: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch {} },
+	};
+
+	/* ---------------- SON (WebAudio, coupé par défaut) ---------------- */
+	let actx: AudioContext | null = null;
+	let soundOn = store.get('vt-sound') === '1';
+	const soundBtn = byId<HTMLButtonElement>('sound');
+	const syncSoundBtn = () => {
+		soundBtn.setAttribute('aria-pressed', String(soundOn));
+		soundBtn.setAttribute('aria-label', soundOn ? 'Couper le son' : 'Activer le son');
+		soundBtn.classList.toggle('on', soundOn);
+	};
+	const ensureAudio = () => {
+		if (!actx) {
+			const AC = window.AudioContext || (window as any).webkitAudioContext;
+			if (!AC) return null;
+			actx = new AC();
+		}
+		if (actx.state === 'suspended') actx.resume();
+		return actx;
+	};
+	const tone = (freq: number, dur: number, type: OscillatorType = 'sine', vol = 0.05, delay = 0, slideTo?: number) => {
+		if (!soundOn) return;
+		const a = ensureAudio();
+		if (!a) return;
+		const t = a.currentTime + delay;
+		const o = a.createOscillator(), g = a.createGain();
+		o.type = type;
+		o.frequency.setValueAtTime(freq, t);
+		if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+		g.gain.setValueAtTime(0.0001, t);
+		g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+		g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+		o.connect(g).connect(a.destination);
+		o.start(t);
+		o.stop(t + dur + 0.02);
+	};
+	const sfx = {
+		tick: () => tone(1900 + Math.random() * 500, 0.04, 'square', 0.012),
+		hover: () => tone(1200, 0.05, 'sine', 0.015),
+		whoosh: () => { tone(300, 0.35, 'sawtooth', 0.02, 0, 1400); tone(600, 0.3, 'sine', 0.03, 0.05, 2000); },
+		tab: () => tone(880, 0.12, 'triangle', 0.04, 0, 1320),
+		error: () => { tone(160, 0.18, 'square', 0.035); tone(120, 0.22, 'square', 0.035, 0.12); },
+		transmit: () => { for (let i = 0; i < 6; i++) tone(500 + i * 140, 0.09, 'triangle', 0.025, i * 0.22); },
+		success: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.5, 'sine', 0.05, i * 0.09)),
+		granted: () => { [392, 523, 659, 784, 1047, 1568].forEach((f, i) => tone(f, 0.7, 'triangle', 0.045, i * 0.07)); tone(80, 0.8, 'sine', 0.08, 0, 160); },
+		boot: () => { tone(110, 1.6, 'sawtooth', 0.025, 0, 880); tone(55, 1.8, 'sine', 0.06, 0, 220); },
+		warp: () => { tone(200, 0.6, 'sawtooth', 0.03, 0, 3000); tone(60, 0.9, 'sine', 0.09, 0, 30); },
+	};
+	syncSoundBtn();
+	soundBtn.addEventListener('click', () => {
+		soundOn = !soundOn;
+		store.setLocal('vt-sound', soundOn ? '1' : '0');
+		syncSoundBtn();
+		if (soundOn) { ensureAudio(); sfx.tab(); }
+	});
+
+	/* ---------------- CANVAS FX (bursts au premier plan) ---------------- */
+	type P = { x: number; y: number; vx: number; vy: number; life: number; max: number; r: number; c: string; g?: number };
+	const fxCanvas = byId<HTMLCanvasElement>('fx');
+	const fctx = fxCanvas.getContext('2d')!;
+	const bgCanvas = byId<HTMLCanvasElement>('particles');
+	const bctx = bgCanvas.getContext('2d')!;
+	const dpr = Math.min(window.devicePixelRatio || 1, 2);
+	let W = innerWidth, H = innerHeight;
+	const sizeCanvas = (c: HTMLCanvasElement, ctx: CanvasRenderingContext2D, w: number, h: number) => {
+		c.width = w * dpr; c.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+	};
+	const resize = () => {
+		W = innerWidth; H = innerHeight;
+		sizeCanvas(fxCanvas, fctx, W, H);
+		sizeCanvas(bgCanvas, bctx, bgCanvas.clientWidth, bgCanvas.clientHeight);
+	};
+	resize();
+	addEventListener('resize', resize);
+
+	const sparks: P[] = [];
+	const burst = (x: number, y: number, n = 30, colors = ['#8ec5ff', '#3b82f6', '#ffffff'], speed = 6, gravity = 0) => {
+		if (reducedFx) return;
+		for (let i = 0; i < n; i++) {
+			const a = Math.random() * Math.PI * 2, v = Math.random() * speed + 0.5;
+			sparks.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0, max: 40 + Math.random() * 40,
+				r: Math.random() * 2.2 + 0.6, c: colors[(Math.random() * colors.length) | 0], g: gravity });
+		}
+	};
+	const confetti = (colors: string[]) => {
+		if (reducedFx) return;
+		for (let i = 0; i < 140; i++)
+			sparks.push({ x: Math.random() * W, y: -10 - Math.random() * H * 0.4, vx: (Math.random() - 0.5) * 2,
+				vy: Math.random() * 3 + 2, life: 0, max: 160 + Math.random() * 80, r: Math.random() * 2.5 + 1,
+				c: colors[(Math.random() * colors.length) | 0], g: 0.02 });
+	};
+	const centerOf = (el: Element) => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+
+	/* particules d'ambiance : montent, fuient la souris, se relient près du curseur */
+	let mx = -9999, my = -9999;
+	const amb = Array.from({ length: reducedFx ? 0 : Math.min(110, Math.round(innerWidth / 12)) }, () => ({
+		x: Math.random() * innerWidth, y: Math.random() * innerHeight, vx: 0, vy: 0,
+		s: Math.random() * 0.4 + 0.08, r: Math.random() * 1.6 + 0.3, a: Math.random() * 0.6 + 0.2,
+	}));
+	const loop = () => {
+		if (!document.hidden) {
+			const bw = bgCanvas.clientWidth, bh = bgCanvas.clientHeight;
+			bctx.clearRect(0, 0, bw, bh);
+			const near: typeof amb = [];
+			for (const p of amb) {
+				const dx = p.x - mx, dy = p.y - my, d2 = dx * dx + dy * dy;
+				if (d2 < 140 * 140) {
+					const f = (1 - Math.sqrt(d2) / 140) * 0.6;
+					p.vx += (dx / (Math.sqrt(d2) + 0.1)) * f;
+					p.vy += (dy / (Math.sqrt(d2) + 0.1)) * f;
+					near.push(p);
+				}
+				p.vx *= 0.94; p.vy *= 0.94;
+				p.x += p.vx; p.y += p.vy - p.s;
+				if (p.y < -5) { p.y = bh + 5; p.x = Math.random() * bw; }
+				if (p.x < -5) p.x = bw + 5; else if (p.x > bw + 5) p.x = -5;
+				bctx.beginPath();
+				bctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+				bctx.fillStyle = `rgba(142,197,255,${p.a})`;
+				bctx.fill();
+			}
+			bctx.lineWidth = 0.6;
+			for (let i = 0; i < near.length; i++)
+				for (let j = i + 1; j < near.length; j++) {
+					const a = near[i], b = near[j], d = Math.hypot(a.x - b.x, a.y - b.y);
+					if (d < 90) {
+						bctx.strokeStyle = `rgba(142,197,255,${(1 - d / 90) * 0.5})`;
+						bctx.beginPath(); bctx.moveTo(a.x, a.y); bctx.lineTo(b.x, b.y); bctx.stroke();
+					}
+				}
+
+			fctx.clearRect(0, 0, W, H);
+			fctx.globalCompositeOperation = 'lighter';
+			for (let i = sparks.length - 1; i >= 0; i--) {
+				const p = sparks[i];
+				p.life++;
+				p.vx *= 0.96; p.vy = p.vy * 0.96 + (p.g ?? 0) * 8;
+				p.x += p.vx; p.y += p.vy;
+				const k = 1 - p.life / p.max;
+				if (k <= 0) { sparks.splice(i, 1); continue; }
+				fctx.globalAlpha = k;
+				fctx.fillStyle = p.c;
+				fctx.beginPath(); fctx.arc(p.x, p.y, p.r * (0.5 + k), 0, Math.PI * 2); fctx.fill();
+			}
+			fctx.globalAlpha = 1;
+			fctx.globalCompositeOperation = 'source-over';
+		}
+		requestAnimationFrame(loop);
+	};
+	requestAnimationFrame(loop);
+
+	/* ---------------- INTRO : logo + saut en hyperespace ---------------- */
+	const intro = byId('intro');
+	const reveal = () => {
+		portal.classList.remove('pre');
+		portal.classList.add('ready');
+	};
+	const runIntro = async () => {
+		const seen = store.get('vt-intro') === '1';
+		if (reducedFx || seen) {
+			intro.remove();
+			requestAnimationFrame(reveal);
+			return;
+		}
+		store.setSession('vt-intro', '1');
+		const c = byId<HTMLCanvasElement>('warp');
+		const ctx = c.getContext('2d')!;
+		sizeCanvas(c, ctx, innerWidth, innerHeight);
+		const cx = innerWidth / 2, cy = innerHeight / 2;
+		const stars = Array.from({ length: 500 }, () => ({ x: (Math.random() - 0.5) * innerWidth * 2, y: (Math.random() - 0.5) * innerHeight * 2, z: Math.random() * 1000 + 1 }));
+		let speed = 2, running = true, skipped = false;
+		const draw = () => {
+			if (!running) return;
+			ctx.fillStyle = 'rgba(2,5,12,0.35)';
+			ctx.fillRect(0, 0, innerWidth, innerHeight);
+			for (const s of stars) {
+				const pz = s.z;
+				s.z -= speed;
+				if (s.z < 1) { s.z = 1000; continue; }
+				const k = 300 / s.z, pk = 300 / pz;
+				const x = cx + s.x * k, y = cy + s.y * k, px = cx + s.x * pk, py = cy + s.y * pk;
+				ctx.strokeStyle = `rgba(${150 + (speed > 20 ? 105 : 0)},${200},255,${Math.min(1, 1.2 - s.z / 1000)})`;
+				ctx.lineWidth = Math.max(0.5, 2.2 - s.z / 500);
+				ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke();
+			}
+			requestAnimationFrame(draw);
+		};
+		draw();
+		const skip = () => { skipped = true; };
+		intro.addEventListener('click', skip);
+		addEventListener('keydown', skip, { once: true });
+		const sub = byId('intro-sub');
+		const steps = ['Ouverture du portail', 'Synchronisation du Campus', 'Accès autorisé'];
+		sfx.boot();
+		for (let i = 0; i < steps.length && !skipped; i++) {
+			sub.textContent = steps[i];
+			for (let t = 0; t < 700 && !skipped; t += 50) { speed = Math.min(speed + 0.25, 10); await wait(50); }
+		}
+		intro.classList.add('warp');
+		sfx.warp();
+		for (let t = 0; t < 520; t += 16) { speed = Math.min(speed * 1.12 + 1, 90); await wait(16); }
+		byId('flash').classList.add('on');
+		intro.classList.add('out');
+		reveal();
+		await wait(700);
+		running = false;
+		intro.remove();
+		byId('flash').classList.remove('on');
+	};
+	runIntro();
+
+	/* ---------------- PARALLAXE + HALO DU CURSEUR ---------------- */
+	if (!reducedFx && finePointer) {
+		const glow = byId('glow');
+		let tx = 0, ty = 0, cx = 0, cy = 0, gx = innerWidth / 2, gy = innerHeight / 2, ggx = gx, ggy = gy;
+		addEventListener('pointermove', (e) => {
+			mx = e.clientX; my = e.clientY;
+			tx = e.clientX / innerWidth - 0.5; ty = e.clientY / innerHeight - 0.5;
+			gx = e.clientX; gy = e.clientY;
+			glow.classList.add('on');
+		});
+		document.addEventListener('pointerleave', () => { mx = my = -9999; glow.classList.remove('on'); });
+		const follow = () => {
+			cx += (tx - cx) * 0.06; cy += (ty - cy) * 0.06;
+			ggx += (gx - ggx) * 0.18; ggy += (gy - ggy) * 0.18;
+			portal.style.setProperty('--px', cx.toFixed(4));
+			portal.style.setProperty('--py', cy.toFixed(4));
+			glow.style.transform = `translate(${ggx}px, ${ggy}px)`;
+			requestAnimationFrame(follow);
+		};
+		follow();
+
+		/* boutons magnétiques */
+		document.querySelectorAll<HTMLElement>('.btn-go, .btn-enter, .tabs button, .sound').forEach((b) => {
+			b.addEventListener('pointermove', (e) => {
+				const r = b.getBoundingClientRect();
+				b.style.translate = `${((e.clientX - r.left) / r.width - 0.5) * 10}px ${((e.clientY - r.top) / r.height - 0.5) * 8}px`;
+			});
+			b.addEventListener('pointerleave', () => (b.style.translate = ''));
+		});
+	} else {
+		addEventListener('pointermove', (e) => { mx = e.clientX; my = e.clientY; });
+	}
+
+	/* ---------------- RÉACTIONS AUX ACTIONS ---------------- */
+	const consoleEl = document.querySelector('.console') as HTMLElement;
+	const pass = byId('pass');
+	const restart = (el: Element, cls: string) => { el.classList.remove(cls); void (el as HTMLElement).offsetWidth; el.classList.add(cls); };
+
+	// étincelles en tapant
+	const measure = document.createElement('canvas').getContext('2d')!;
+	document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('.field input, .field textarea').forEach((f) => {
+		f.addEventListener('input', (e) => {
+			if ((e as InputEvent).inputType?.startsWith('delete')) return;
+			sfx.tick();
+			if (reducedFx) return;
+			const r = f.getBoundingClientRect();
+			const cs = getComputedStyle(f);
+			measure.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+			let x: number, y: number;
+			if (f.tagName === 'TEXTAREA') { x = r.left + r.width - 30; y = r.bottom - 20; }
+			else { x = Math.min(r.left + 16 + measure.measureText(f.value).width, r.right - 12); y = r.top + r.height * 0.68; }
+			burst(x, y, 6, ['#8ec5ff', '#ffffff'], 2.5);
+		});
+		f.addEventListener('focus', () => restart(f.closest('.field')!, 'scanin'));
+	});
+	document.querySelectorAll('.stage-opt input, .consent input').forEach((i) =>
+		i.addEventListener('change', () => {
+			sfx.tab();
+			const [x, y] = centerOf((i as HTMLElement).nextElementSibling!);
+			burst(x, y, 18, ['#8ec5ff', '#3b82f6'], 3.5);
+		}),
+	);
+	document.querySelectorAll('.stage-opt, .tabs button, .btn-go').forEach((el) => el.addEventListener('pointerenter', sfx.hover));
+
+	document.addEventListener('vt:step', () => { sfx.whoosh(); restart(consoleEl, 'wiping'); });
+	document.addEventListener('vt:tab', () => { sfx.tab(); restart(consoleEl, 'wiping'); });
+	document.addEventListener('vt:error', () => { sfx.error(); restart(consoleEl, 'glitch'); });
+	document.addEventListener('vt:transmit', () => { sfx.transmit(); consoleEl.classList.add('charging'); });
+
+	const shockwave = (color: string) => {
+		const wrap = pass.parentElement!;
+		for (let i = 0; i < 3; i++) {
+			const r = document.createElement('span');
+			r.className = 'shock';
+			r.style.setProperty('--c', color);
+			r.style.animationDelay = `${i * 0.14}s`;
+			wrap.appendChild(r);
+			setTimeout(() => r.remove(), 1600);
+		}
+	};
+	document.addEventListener('vt:success', () => {
+		consoleEl.classList.remove('charging');
+		sfx.success();
+		restart(pass, 'flip');
+		shockwave('#f5b84b');
+		const [x, y] = centerOf(pass);
+		setTimeout(() => burst(x, y, 90, ['#8ec5ff', '#3b82f6', '#f5b84b', '#ffffff'], 9), 350);
+	});
+	document.addEventListener('vt:status', (e) => {
+		const st = (e as CustomEvent).detail;
+		if (st === 'valide') {
+			sfx.granted();
+			restart(pass, 'flip');
+			shockwave('#34c76f');
+			const [x, y] = centerOf(pass);
+			setTimeout(() => burst(x, y, 110, ['#34c76f', '#8ec5ff', '#ffffff'], 10), 300);
+			setTimeout(() => confetti(['#34c76f', '#8ec5ff', '#3b82f6', '#ffffff', '#e98a6b']), 500);
+		}
+	});
+
+	// « Entrer dans le Village » : flash de téléportation (le lien s'ouvre normalement)
+	document.addEventListener('click', (e) => {
+		const a = (e.target as HTMLElement).closest('.btn-enter');
+		if (!a) return;
+		sfx.warp();
+		const [x, y] = centerOf(a);
+		burst(x, y, 60, ['#34c76f', '#ffffff', '#8ec5ff'], 8);
+		restart(byId('flash'), 'pulse');
+	});
+</script>
+
 <style>
 	/* ================= BASE ================= */
 	:global(body) {
@@ -629,7 +994,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 
 	/* ================= DÉCOR ================= */
 	.bg {
-		position: absolute;
+		position: fixed;
 		inset: 0;
 		z-index: -1;
 		pointer-events: none;
@@ -644,6 +1009,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		opacity: 0.38;
 		filter: saturate(1.3) hue-rotate(-8deg);
 		transform: scale(1.06);
+		translate: calc(var(--px, 0) * -40px) calc(var(--py, 0) * -24px);
 		animation: drift 40s ease-in-out infinite alternate;
 	}
 	@keyframes drift {
@@ -653,6 +1019,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	}
 	.bg-floor {
 		position: absolute;
+		translate: calc(var(--px, 0) * 30px) 0;
 		left: -50%;
 		right: -50%;
 		bottom: -10%;
@@ -840,6 +1207,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	}
 	.pass-wrap {
 		position: relative;
+		translate: calc(var(--px, 0) * -14px) calc(var(--py, 0) * -10px);
 		width: 100%;
 		display: grid;
 		place-items: center;
@@ -852,7 +1220,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		aspect-ratio: 1;
 		left: 50%;
 		top: 50%;
-		translate: -50% -50%;
+		translate: calc(-50% + var(--px, 0) * 50px) calc(-50% + var(--py, 0) * 40px);
 		fill: none;
 		pointer-events: none;
 	}
@@ -1156,7 +1524,6 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		backdrop-filter: blur(20px) saturate(1.2);
 		box-shadow: 0 0 0 1px #ffffff08 inset, 0 40px 120px -40px #000, 0 0 80px -30px #3b82f6aa;
 		clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px));
-		animation: rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 	}
 	@keyframes rise {
 		from {
@@ -1655,7 +2022,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	}
 
 	/* connexion */
-	.intro {
+	.log-intro {
 		color: var(--ink-dim);
 		margin: 0 0 24px;
 	}
@@ -1750,8 +2117,582 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		box-shadow: 0 0 44px -2px #34c76fcc;
 	}
 
+
+	/* ================= IMMERSION ================= */
+	.portal {
+		--px: 0;
+		--py: 0;
+	}
+	/* --- entrée en scène --- */
+	.hud-top,
+	.hud-bottom,
+	.pass-col,
+	.console {
+		transition: opacity 0.9s cubic-bezier(0.2, 0.8, 0.2, 1), transform 1.1s cubic-bezier(0.16, 1, 0.3, 1),
+			filter 0.9s;
+	}
+	.portal.pre .hud-top {
+		opacity: 0;
+		transform: translateY(-30px);
+	}
+	.portal.pre .hud-bottom {
+		opacity: 0;
+		transform: translateY(30px);
+	}
+	.portal.pre .pass-col {
+		opacity: 0;
+		transform: perspective(900px) translateX(-80px) rotateY(35deg) scale(0.9);
+		filter: blur(8px);
+	}
+	.portal.pre .console {
+		opacity: 0;
+		transform: perspective(900px) translateX(80px) rotateY(-25deg) scale(0.92);
+		filter: blur(8px);
+	}
+	.portal.ready .pass-col {
+		transition-delay: 0.15s;
+	}
+	.portal.ready .console {
+		transition-delay: 0.3s;
+	}
+	.portal.ready .hud-bottom {
+		transition-delay: 0.5s;
+	}
+	.portal.ready .boot {
+		animation: fadeIn 0.4s 0.8s both;
+	}
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+	}
+
+	/* --- intro --- */
+	.intro {
+		position: fixed;
+		inset: 0;
+		z-index: 100;
+		display: grid;
+		place-items: center;
+		background: radial-gradient(ellipse at center, #0b1a3d 0%, #02050c 70%);
+		cursor: pointer;
+		transition: opacity 0.7s, transform 0.9s cubic-bezier(0.7, 0, 0.3, 1);
+	}
+	.intro canvas {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
+	.intro-core {
+		position: relative;
+		text-align: center;
+		transition: transform 0.6s cubic-bezier(0.7, 0, 0.84, 0), opacity 0.5s;
+	}
+	.intro-logo {
+		width: 120px;
+		height: 120px;
+		overflow: visible;
+		filter: drop-shadow(0 0 18px #3b82f6) drop-shadow(0 0 40px #3b82f688);
+	}
+	.intro-logo path {
+		stroke-width: 1.4;
+		stroke-linejoin: round;
+		stroke-dasharray: 260;
+		stroke-dashoffset: 260;
+		fill-opacity: 0;
+		animation: draw 1.3s cubic-bezier(0.6, 0, 0.2, 1) forwards, fillIn 0.6s 1.1s forwards;
+	}
+	.v-l {
+		stroke: #8ec5ff;
+		fill: #8ec5ff;
+	}
+	.v-r {
+		stroke: #3b82f6;
+		fill: #3b82f6;
+		animation-delay: 0.15s, 1.2s !important;
+	}
+	.v-s {
+		stroke: #3b82f6;
+		fill: #3b82f6;
+		animation-delay: 0.45s, 1.3s !important;
+	}
+	@keyframes draw {
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+	@keyframes fillIn {
+		to {
+			fill-opacity: 1;
+		}
+	}
+	.intro-title {
+		margin: 22px 0 6px;
+		font-weight: 600;
+		font-size: 0.95rem;
+		letter-spacing: 0.5em;
+		text-transform: uppercase;
+		padding-left: 0.5em;
+		animation: track 1.6s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	}
+	@keyframes track {
+		from {
+			letter-spacing: 1.4em;
+			opacity: 0;
+			filter: blur(6px);
+		}
+	}
+	.intro-sub {
+		margin: 0;
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.24em;
+		color: var(--sky);
+		min-height: 1.2em;
+	}
+	.intro-bar {
+		width: 220px;
+		height: 2px;
+		margin: 18px auto 0;
+		background: #ffffff14;
+		overflow: hidden;
+		border-radius: 2px;
+	}
+	.intro-bar span {
+		display: block;
+		height: 100%;
+		width: 100%;
+		transform-origin: 0 50%;
+		background: linear-gradient(90deg, var(--sky), var(--blue), var(--sunset));
+		box-shadow: 0 0 10px var(--blue);
+		animation: load 2.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+	}
+	@keyframes load {
+		from {
+			transform: scaleX(0);
+		}
+	}
+	.intro-skip {
+		position: absolute;
+		bottom: 28px;
+		margin: 0;
+		font-size: 0.66rem;
+		letter-spacing: 0.24em;
+		text-transform: uppercase;
+		color: #a6b1c477;
+		animation: blink 2s ease-in-out infinite;
+	}
+	.intro.warp .intro-core {
+		transform: scale(3.2);
+		opacity: 0;
+	}
+	.intro.out {
+		opacity: 0;
+		transform: scale(1.25);
+		pointer-events: none;
+	}
+	.flash {
+		position: fixed;
+		inset: 0;
+		z-index: 101;
+		pointer-events: none;
+		opacity: 0;
+		background: radial-gradient(circle at center, #ffffff, #8ec5ff 30%, transparent 70%);
+	}
+	.flash.on {
+		animation: flash 0.8s ease-out;
+	}
+	.flash.pulse {
+		animation: flash 0.6s ease-out;
+	}
+	@keyframes flash {
+		0% {
+			opacity: 0;
+		}
+		15% {
+			opacity: 0.85;
+		}
+		100% {
+			opacity: 0;
+		}
+	}
+
+	/* --- curseur + canvas fx --- */
+	.cursor-glow {
+		position: fixed;
+		left: -300px;
+		top: -300px;
+		width: 600px;
+		height: 600px;
+		border-radius: 50%;
+		pointer-events: none;
+		z-index: 0;
+		background: radial-gradient(circle, #3b82f626 0%, #8ec5ff0d 35%, transparent 65%);
+		mix-blend-mode: screen;
+		opacity: 0;
+		transition: opacity 0.6s;
+	}
+	.cursor-glow.on {
+		opacity: 1;
+	}
+	.fx {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+		z-index: 60;
+	}
+
+	/* --- décor vivant --- */
+	.searchlight {
+		position: absolute;
+		bottom: -5%;
+		width: 140px;
+		height: 120vh;
+		transform-origin: 50% 100%;
+		background: linear-gradient(0deg, #8ec5ff40, #8ec5ff10 50%, transparent 85%);
+		clip-path: polygon(46% 100%, 54% 100%, 100% 0, 0 0);
+		filter: blur(6px);
+		mix-blend-mode: screen;
+	}
+	.s1 {
+		left: 38%;
+		animation: sweepL 14s ease-in-out infinite alternate;
+	}
+	.s2 {
+		left: 58%;
+		animation: sweepR 17s ease-in-out infinite alternate;
+	}
+	@keyframes sweepL {
+		from {
+			transform: rotate(-38deg);
+		}
+		to {
+			transform: rotate(12deg);
+		}
+	}
+	@keyframes sweepR {
+		from {
+			transform: rotate(32deg);
+		}
+		to {
+			transform: rotate(-14deg);
+		}
+	}
+	.airship {
+		position: absolute;
+		top: 14%;
+		left: -140px;
+		width: 120px;
+		fill: #0d1a33;
+		stroke: #8ec5ff55;
+		stroke-width: 1;
+		filter: drop-shadow(0 0 8px #3b82f644);
+		translate: calc(var(--px, 0) * -60px) calc(var(--py, 0) * -30px);
+		animation: fly 95s linear infinite;
+	}
+	.air-light {
+		fill: #ff5a5a;
+		stroke: none;
+		animation: blink 1.2s steps(2) infinite;
+	}
+	@keyframes fly {
+		from {
+			transform: translateX(0) translateY(0);
+		}
+		50% {
+			transform: translateX(60vw) translateY(14px);
+		}
+		to {
+			transform: translateX(calc(100vw + 280px)) translateY(0);
+		}
+	}
+	.star-shoot {
+		position: absolute;
+		width: 160px;
+		height: 1px;
+		background: linear-gradient(90deg, #ffffff, transparent);
+		opacity: 0;
+		transform: rotate(-24deg);
+	}
+	.star-shoot.a {
+		top: 12%;
+		left: 70%;
+		animation: shoot 9s 2s ease-in infinite;
+	}
+	.star-shoot.b {
+		top: 6%;
+		left: 35%;
+		animation: shoot 13s 6s ease-in infinite;
+	}
+	.star-shoot.c {
+		top: 22%;
+		left: 90%;
+		animation: shoot 11s 9s ease-in infinite;
+	}
+	@keyframes shoot {
+		0% {
+			opacity: 0;
+			translate: 0 0;
+		}
+		2% {
+			opacity: 1;
+		}
+		8% {
+			opacity: 0;
+			translate: -340px 150px;
+		}
+		100% {
+			opacity: 0;
+			translate: -340px 150px;
+		}
+	}
+
+	/* --- bouton son --- */
+	.sound {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		padding: 6px 12px;
+		border-radius: 999px;
+		border: 1px solid #8ec5ff33;
+		background: #04070f88;
+		color: var(--ink-dim);
+		font: 500 0.68rem var(--mono);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		cursor: pointer;
+		transition: border-color 0.2s, color 0.2s;
+	}
+	.sound:hover,
+	.sound.on {
+		color: var(--ink);
+		border-color: var(--sky);
+	}
+	.sound:focus-visible {
+		outline: 2px solid var(--sky);
+		outline-offset: 2px;
+	}
+	.eq {
+		display: inline-flex;
+		align-items: flex-end;
+		gap: 2px;
+		height: 10px;
+	}
+	.eq i {
+		width: 2px;
+		height: 3px;
+		background: currentColor;
+		border-radius: 1px;
+	}
+	.sound.on .eq i {
+		background: var(--sky);
+		animation: eq 0.9s ease-in-out infinite;
+	}
+	.sound.on .eq i:nth-child(2) {
+		animation-delay: 0.2s;
+	}
+	.sound.on .eq i:nth-child(3) {
+		animation-delay: 0.4s;
+	}
+	.sound.on .eq i:nth-child(4) {
+		animation-delay: 0.1s;
+	}
+	@keyframes eq {
+		50% {
+			height: 10px;
+		}
+	}
+
+	/* --- console vivante --- */
+	.run {
+		position: absolute;
+		height: 1px;
+		width: 160px;
+		pointer-events: none;
+		background: linear-gradient(90deg, transparent, var(--sky), #fff, var(--sky), transparent);
+		box-shadow: 0 0 10px var(--sky);
+	}
+	.run-t {
+		top: 0;
+		animation: runT 5s linear infinite;
+	}
+	.run-b {
+		bottom: 0;
+		animation: runB 6.5s linear infinite;
+	}
+	@keyframes runT {
+		from {
+			left: -160px;
+		}
+		to {
+			left: 100%;
+		}
+	}
+	@keyframes runB {
+		from {
+			left: 100%;
+		}
+		to {
+			left: -160px;
+		}
+	}
+	.wipe {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		opacity: 0;
+		background: linear-gradient(90deg, transparent 0%, #8ec5ff22 40%, #8ec5ff66 50%, #8ec5ff22 60%, transparent 100%),
+			repeating-linear-gradient(180deg, #8ec5ff14 0 1px, transparent 1px 4px);
+		background-size: 300% 100%, 100% 100%;
+		z-index: 2;
+	}
+	.console.wiping .wipe {
+		animation: wipe 0.7s ease-out;
+	}
+	@keyframes wipe {
+		0% {
+			opacity: 1;
+			background-position: 100% 0, 0 0;
+		}
+		100% {
+			opacity: 0;
+			background-position: 0% 0, 0 0;
+		}
+	}
+	.console.glitch {
+		animation: glitch 0.45s steps(2);
+	}
+	@keyframes glitch {
+		0% {
+			transform: translate(0);
+			border-color: var(--danger);
+		}
+		20% {
+			transform: translate(-4px, 1px) skewX(-1deg);
+			filter: hue-rotate(140deg) saturate(2);
+		}
+		40% {
+			transform: translate(4px, -1px);
+			filter: none;
+		}
+		60% {
+			transform: translate(-2px, 0) skewX(1deg);
+			filter: hue-rotate(-60deg);
+		}
+		100% {
+			transform: translate(0);
+		}
+	}
+	.console.charging {
+		box-shadow: 0 0 0 1px #8ec5ff33 inset, 0 0 120px -10px #3b82f6;
+		animation: charge 0.6s ease-in-out infinite alternate;
+	}
+	@keyframes charge {
+		to {
+			box-shadow: 0 0 0 1px #8ec5ff88 inset, 0 0 160px 0 #3b82f6cc;
+		}
+	}
+	.field::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		height: 54px;
+		border-radius: 10px;
+		pointer-events: none;
+		opacity: 0;
+		background: linear-gradient(180deg, transparent, #8ec5ff40 50%, transparent);
+		background-size: 100% 300%;
+	}
+	.field.scanin::after {
+		animation: scanin 0.6s ease-out;
+	}
+	@keyframes scanin {
+		0% {
+			opacity: 1;
+			background-position: 0 100%;
+		}
+		100% {
+			opacity: 0;
+			background-position: 0 0%;
+		}
+	}
+
+	/* --- pass : flip + onde de choc --- */
+	.pass.flip {
+		animation: flip 1s cubic-bezier(0.5, -0.3, 0.3, 1.3), float 6s 1s ease-in-out infinite;
+	}
+	@keyframes flip {
+		0% {
+			transform: rotateY(0) scale(1);
+		}
+		45% {
+			transform: rotateY(200deg) scale(1.08);
+		}
+		100% {
+			transform: rotateY(360deg) scale(1);
+		}
+	}
+	.shock {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 300px;
+		height: 300px;
+		margin: -150px 0 0 -150px;
+		border-radius: 50%;
+		border: 2px solid var(--c);
+		box-shadow: 0 0 30px var(--c), inset 0 0 30px var(--c);
+		pointer-events: none;
+		opacity: 0;
+		animation: shock 1.3s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+	}
+	@keyframes shock {
+		0% {
+			opacity: 1;
+			transform: scale(0.2);
+		}
+		100% {
+			opacity: 0;
+			transform: scale(3.2);
+		}
+	}
+	.pass[data-state='pending'] .avatar,
+	.pass[data-state='valide'] .avatar {
+		background: conic-gradient(from 0deg, var(--state), transparent 40%, var(--state) 60%, transparent);
+	}
+	.btn-enter,
+	:global(.btn-enter) {
+		position: relative;
+		animation: enterPulse 2s ease-in-out infinite;
+	}
+	@keyframes enterPulse {
+		50% {
+			box-shadow: 0 0 0 8px #34c76f22, 0 0 50px -2px #34c76fcc;
+		}
+	}
+	.btn-go,
+	.btn-enter,
+	.tabs button,
+	.sound {
+		transition: translate 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.15s, box-shadow 0.25s, color 0.25s,
+			border-color 0.2s;
+	}
+
 	/* mouvement réduit */
 	@media (prefers-reduced-motion: reduce) {
+		.intro,
+		.cursor-glow,
+		.searchlight,
+		.airship,
+		.star-shoot,
+		.run {
+			display: none !important;
+		}
 		.portal *,
 		.portal *::before,
 		.portal *::after {
