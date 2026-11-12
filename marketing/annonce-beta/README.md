@@ -80,3 +80,15 @@ ffmpeg -i out/village-billet-4x5.mp4 -i out/takeoff.mp4 -i out/music4.wav -filte
 Le clip IA (généré avec `prompts-video.md`) remplace la scène 3D : il est posé en carte au centre,
 sur un fond flouté teinté violet, avec le titre de `clipov.html` (« Cap sur le Village ! »).
 Bande-son : `music5.py` (moteur + souffle, sans éclaboussures).
+
+## Version immersive (plein écran, sans cadre)
+
+Le clip de l'hydravion est en plein écran avec un mouvement de caméra : départ serré sur l'aile
+« VILLAGE TECH », glissement jusqu'au fuselage et à la dérive. Titre posé sur l'image (`clipov2.html`).
+
+```sh
+EASE="(0.5-0.5*cos(PI*min(t/4.7\,1)))"
+GRADE="unsharp=5:5:0.7:5:5:0.0,eq=saturation=1.18:contrast=1.06:brightness=0.01,noise=alls=6:allf=t,vignette=PI/5"
+# 4:5 : scale=1928:1350, crop=1080:1350:x='848-790*$EASE'
+# 9:16 : scale=2742:1920, crop=1080:1920:x='1662-1540*$EASE'
+```
