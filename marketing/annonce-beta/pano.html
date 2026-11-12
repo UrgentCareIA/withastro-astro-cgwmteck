@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carrousel panoramique</title>
+<style>
+@font-face { font-family: 'Jakarta'; font-weight: 800; src: url(a/plus-jakarta-sans-latin-800-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Grotesk'; font-weight: 600; src: url(a/space-grotesk-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Script'; src: url(a/kaushan-script-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Mono'; font-weight: 600; src: url(a/jetbrains-mono-latin-600-normal.woff2) format('woff2'); }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 5400px; height: 1350px; overflow: hidden; }
+#pano { position: relative; width: 5400px; height: 1350px; overflow: hidden; color: #fff; font-family: 'Grotesk', sans-serif;
+	background:
+		radial-gradient(ellipse 900px 600px at 700px 200px, #ff5fa244, transparent 70%),
+		radial-gradient(ellipse 900px 700px at 2700px 1200px, #ffb37a33, transparent 70%),
+		radial-gradient(ellipse 1000px 700px at 4700px 300px, #ff8fc455, transparent 70%),
+		linear-gradient(180deg, #3346e0 0%, #4a3fd4 45%, #3a2fa6 100%); }
+canvas#grain { position: absolute; inset: 0; mix-blend-mode: overlay; opacity: 0.35; }
+.abs { position: absolute; }
+h1, h2 { font-family: 'Jakarta'; font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; text-shadow: 0 6px 40px #1e227888; }
+.mono { font: 600 26px 'Mono'; letter-spacing: 0.24em; text-transform: uppercase; }
+.script { font-family: 'Script'; font-weight: 400; letter-spacing: 0; display: inline-block; position: relative; transform: rotate(-4deg); text-shadow: 0 0 40px #ff5fa288; }
+.script.u::after { content: ''; position: absolute; left: 4%; right: 6%; bottom: -0.1em; height: 0.085em; border-radius: 99px; background: linear-gradient(90deg, #ff5fa2, #ff7a7a, #ffb37a); box-shadow: 0 0 20px #ff5fa2aa; }
+.paper { position: absolute; filter: drop-shadow(0 18px 30px #1a166055); }
+.polaroid { position: absolute; background: #fbfaff; padding: 22px 22px 96px; box-shadow: 0 30px 60px -20px #1a1660aa, 0 4px 10px #1a166044; }
+.polaroid img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.polaroid .cap { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; font: 400 44px 'Script'; color: #3a2fa6; }
+.tape { position: absolute; height: 64px; background: linear-gradient(180deg, #ffd6ecdd, #ffc2e0cc); box-shadow: 0 2px 6px #1a166033;
+	-webkit-mask: linear-gradient(90deg, transparent 0, #000 0) ; }
+.tape::before, .tape::after { content: ''; position: absolute; top: 0; bottom: 0; width: 12px; background: inherit; }
+.tape.zig { clip-path: polygon(0 0, 4% 12%, 0 25%, 4% 38%, 0 50%, 4% 62%, 0 75%, 4% 88%, 0 100%, 100% 100%, 96% 88%, 100% 75%, 96% 62%, 100% 50%, 96% 38%, 100% 25%, 96% 12%, 100% 0); }
+.tape.blue { background: linear-gradient(180deg, #c9d8ffdd, #b3c8ffcc); }
+.note { position: absolute; font: 400 52px 'Script'; color: #fff; text-shadow: 0 2px 14px #1e2278aa; }
+.note.dark { color: #3a2fa6; text-shadow: none; }
+.pill { display: inline-flex; align-items: center; gap: 14px; padding: 18px 36px; border-radius: 99px; border: 2px solid #ffffff88; background: #ffffff26; font: 600 34px 'Grotesk'; }
+.cta { display: inline-flex; align-items: center; gap: 18px; padding: 30px 60px; border-radius: 99px; font: 800 46px 'Jakarta'; color: #fff; background: linear-gradient(90deg, #4f7cff, #7b5cff 60%, #ff5fa2); border: 2px solid #ffffff77; box-shadow: 0 0 0 14px #ffffff22, 0 10px 80px 0 #ff5fa2; }
+.stamp { position: absolute; width: 230px; height: 230px; border-radius: 50%; border: 6px solid #ff5fa2; color: #ff5fa2; display: grid; place-items: center; text-align: center; font: 800 40px 'Jakarta'; line-height: 1; transform: rotate(-14deg); background: #fff2f8; box-shadow: 0 14px 30px -10px #1a166088; }
+.stamp small { display: block; font: 600 16px 'Mono'; letter-spacing: 0.2em; margin-top: 8px; }
+.brand { position: absolute; left: 64px; top: 56px; display: flex; align-items: center; gap: 18px; font: 600 25px 'Grotesk'; letter-spacing: 0.32em; text-transform: uppercase; }
+.brand img { width: 56px; height: 56px; border-radius: 14px; }
+.spark { position: absolute; width: 60px; height: 60px; }
+.spark path { fill: #fff; }
+</style>
+</head>
+<body>
+<div id="pano">
+	<canvas id="grain" width="5400" height="1350"></canvas>
+	<svg id="torn" class="abs" style="inset:0" width="5400" height="1350"></svg>
+	<svg id="route" class="abs" style="inset:0" width="5400" height="1350"></svg>
+
+	<!-- ===== SLIDE 1 ===== -->
+	<div class="brand"><img src="a/logo-512.png">Le Village Tech</div>
+	<div class="abs" style="left:72px; top:330px; width:820px;">
+		<p class="mono" style="margin-bottom:26px">Play · Build · Collaborate</p>
+		<h1 style="font-size:140px">La bêta<br>est <span class="script u" style="font-size:1.12em">lancée !</span></h1>
+		<p style="font-size:40px; font-weight:600; margin-top:40px">Entre dans une nouvelle ère.</p>
+	</div>
+	<div class="abs" style="left:72px; top:1150px"><span class="pill">Glisse →</span></div>
+
+	<!-- polaroïd sur la jonction 1|2 : l'hydravion -->
+	<div class="polaroid" style="left:900px; top:110px; width:520px; height:520px; transform:rotate(5deg)">
+		<img src="pano/plane-wide.jpg" style="object-position:58% 50%">
+		<p class="cap">vol VT 2026 ✈</p>
+	</div>
+	<div class="tape zig" style="left:1050px; top:78px; width:230px; transform:rotate(-4deg)"></div>
+
+	<!-- ===== SLIDE 2 : le Village Pass ===== -->
+	<p class="note" style="left:1110px; top:720px; transform:rotate(-6deg)">ton pass t’attend…</p>
+	<svg class="abs" style="left:1260px; top:560px; transform:scaleY(-1) scale(.8)" width="260" height="160" viewBox="0 0 260 160"><path d="M10 40 C 90 10, 170 30, 220 120" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/><path d="M190 110 L222 126 L232 90" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+	<img class="abs" src="pano/pass.png" style="left:1500px; top:250px; width:430px; transform:rotate(-5deg); filter:drop-shadow(0 30px 40px #1a166088)">
+	<div class="tape zig blue" style="left:1620px; top:225px; width:200px; transform:rotate(6deg)"></div>
+
+	<!-- ===== JONCTION 2|3 : le billet ===== -->
+	<img class="abs" src="pano/ticket.png" style="left:2080px; top:250px; width:540px; transform:rotate(7deg); filter:drop-shadow(0 30px 40px #1a166088)">
+	<div class="tape zig" style="left:2240px; top:252px; width:240px; transform:rotate(-3deg)"></div>
+	<div class="stamp" style="left:2560px; top:120px">BÊTA<small>VILLAGE · 2026</small></div>
+	<p class="note" style="left:2600px; top:1080px; transform:rotate(-5deg)">le prochain billet est <span class="script u">à ton nom !</span></p>
+
+	<!-- ===== SLIDE 3-4 : l'Académie ===== -->
+	<div class="abs" style="left:2900px; top:150px; width:900px">
+		<p class="mono" style="margin-bottom:18px">À l’intérieur</p>
+		<h2 style="font-size:110px">Bienvenue à<br>l’<span class="script u" style="font-size:1.12em">Académie !</span></h2>
+	</div>
+	<div class="polaroid" style="left:2930px; top:560px; width:520px; height:470px; transform:rotate(-5deg)"><img src="pano/hall.jpg"><p class="cap">le hall</p></div>
+	<div class="tape zig blue" style="left:3080px; top:540px; width:190px; transform:rotate(3deg)"></div>
+	<div class="polaroid" style="left:3520px; top:470px; width:520px; height:470px; transform:rotate(4deg)"><img src="pano/amphi-palier.jpg"><p class="cap">l’amphi</p></div>
+	<div class="tape zig" style="left:3700px; top:445px; width:200px; transform:rotate(-5deg)"></div>
+	<div class="polaroid" style="left:3880px; top:820px; width:470px; height:420px; transform:rotate(-3deg)"><img src="pano/salle-info.jpg"><p class="cap">la salle info</p></div>
+	<div class="tape zig blue" style="left:4030px; top:800px; width:180px; transform:rotate(4deg)"></div>
+	<div class="polaroid" style="left:4080px; top:120px; width:480px; height:440px; transform:rotate(6deg)"><img src="pano/biblio.jpg"><p class="cap">la bibliothèque</p></div>
+	<div class="tape zig" style="left:4240px; top:96px; width:190px; transform:rotate(-2deg)"></div>
+
+	<!-- ===== SLIDE 5 ===== -->
+	<div class="abs" style="left:4320px; top:0; width:1080px; height:1350px; display:grid; place-items:center; align-content:center; gap:44px; text-align:center">
+		<img src="a/logo-512.png" style="width:220px; height:220px; border-radius:52px; margin:0 auto; box-shadow:0 0 90px #ff5fa2aa">
+		<h1 style="font-size:104px">Viens chercher<br><span class="script u" style="font-size:1.12em">ton billet !</span></h1>
+		<div><span class="cta">Lien en bio →</span></div>
+		<p class="mono" style="font-size:24px">Gratuit · places limitées</p>
+	</div>
+
+	<div id="sparks"></div>
+</div>
+
+<script>
+let seed = 2026; const rnd = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296;
+// grain
+(() => { const c = document.getElementById('grain').getContext('2d'); const img = c.createImageData(5400, 1350); for (let i = 0; i < img.data.length; i += 4) { const v = 128 + (rnd() - 0.5) * 90; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; } c.putImageData(img, 0, 0); })();
+
+// bandes de papier déchiré (bords irréguliers), comme le modèle
+function tornStrip(x0, x1, color, opacity) {
+	const step = 14, pts = [];
+	for (let y = -20; y <= 1370; y += step) pts.push([x0 + (rnd() - 0.5) * 22 + Math.sin(y / 90) * 8, y]);
+	for (let y = 1370; y >= -20; y -= step) pts.push([x1 + (rnd() - 0.5) * 22 + Math.sin(y / 70) * 8, y]);
+	return `<polygon points="${pts.map(p => p.join(',')).join(' ')}" fill="${color}" fill-opacity="${opacity}" filter="url(#sh)"/>` +
+		`<polyline points="${pts.slice(pts.length / 2).map(([x, y]) => `${x + 3},${y}`).join(' ')}" fill="none" stroke="#ffffff" stroke-opacity=".9" stroke-width="5"/>`;
+}
+document.getElementById('torn').innerHTML =
+	`<defs><filter id="sh" x="-20%" y="-5%" width="140%" height="110%"><feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#1a1660" flood-opacity=".35"/></filter></defs>` +
+	tornStrip(980, 1240, '#ffffff', 0.12) +
+	tornStrip(1520, 2240, '#f6f3ff', 0.92) +
+	tornStrip(2780, 2860, '#ffd6ec', 0.55) +
+	tornStrip(3460, 4180, '#ffffff', 0.10) +
+	tornStrip(4250, 4330, '#ffd6ec', 0.5);
+
+// trajet en pointillés qui traverse tout le carrousel, avec l'avion
+(() => {
+	const d = 'M 120 1060 C 700 1300, 900 760, 1500 900 S 2300 1260, 2900 1180 S 3700 1300, 4300 1200 S 4900 1290, 5330 1250';
+	const svg = document.getElementById('route');
+	svg.innerHTML = `<path id="rp" d="${d}" fill="none" stroke="#ffffff" stroke-opacity=".75" stroke-width="5" stroke-dasharray="4 20" stroke-linecap="round"/>`;
+	const path = svg.querySelector('#rp'), L = path.getTotalLength();
+	for (const k of [0.27, 0.985]) {
+		const p = path.getPointAtLength(L * k), q = path.getPointAtLength(L * k - 4);
+		const a = Math.atan2(p.y - q.y, p.x - q.x) * 180 / Math.PI;
+		svg.innerHTML += `<g transform="translate(${p.x} ${p.y}) rotate(${a})"><path d="M28 0 L-14 -24 L-6 0 L-14 24 Z" fill="#fff"/><circle r="40" fill="#ffffff22"/></g>`;
+	}
+})();
+
+// petites étincelles
+document.getElementById('sparks').innerHTML = [[930, 860, 1], [1460, 140, .8], [2700, 760, .7], [3380, 400, .9], [4440, 260, 1.1], [5200, 1120, .8], [4980, 140, .6]]
+	.map(([x, y, s]) => `<svg class="spark" style="left:${x}px;top:${y}px;transform:scale(${s})" viewBox="0 0 60 60"><path d="M30 0 C33 22 38 27 60 30 C38 33 33 38 30 60 C27 38 22 33 0 30 C22 27 27 22 30 0Z"/></svg>`).join('');
+
+window.ready = document.fonts.ready.then(() => Promise.all([...document.images].map(i => i.decode().catch(() => {}))));
+</script>
+</body>
+</html>

@@ -92,3 +92,13 @@ GRADE="unsharp=5:5:0.7:5:5:0.0,eq=saturation=1.18:contrast=1.06:brightness=0.01,
 # 4:5 : scale=1928:1350, crop=1080:1350:x='848-790*$EASE'
 # 9:16 : scale=2742:1920, crop=1080:1920:x='1662-1540*$EASE'
 ```
+
+## Carrousel panoramique (style scrapbook)
+
+`pano.html` = une seule image de 5400 × 1350 px, découpée en 5 slides de 1080 × 1350 qui se raccordent
+quand on glisse : papier déchiré, polaroïds scotchés à cheval sur deux slides, trajet en pointillés de l'avion.
+Les visuels (`pano/`) : still de l'hydravion, pass et billet exportés de `billet3.html`, photos de l'Académie.
+
+```sh
+node pano.cjs "$PWD" "$PWD/out/pano"   # → out/pano/panorama.png, puis découper en 5 × 1080 px
+```
