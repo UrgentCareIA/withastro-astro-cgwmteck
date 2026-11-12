@@ -74,3 +74,9 @@ ffmpeg -i out/village-billet-4x5.mp4 -i out/takeoff.mp4 -i out/music4.wav -filte
   "[0:v]trim=0:19.4,setpts=PTS-STARTPTS[a];[1:v]trim=0:5,setpts=PTS-STARTPTS[t];[0:v]trim=19.4:23.5,setpts=PTS-STARTPTS[e];[a][t][e]concat=n=3:v=1:a=0,fps=30[v]" \
   -map "[v]" -map 2:a -c:v libx264 -crf 17 -pix_fmt yuv420p -c:a aac -shortest out/village-decollage-4x5.mp4
 ```
+
+## Teaser final avec le clip de l'hydravion (28,5 s)
+
+Le clip IA (généré avec `prompts-video.md`) remplace la scène 3D : il est posé en carte au centre,
+sur un fond flouté teinté violet, avec le titre de `clipov.html` (« Cap sur le Village ! »).
+Bande-son : `music5.py` (moteur + souffle, sans éclaboussures).
