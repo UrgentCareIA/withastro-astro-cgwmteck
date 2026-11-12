@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Décollage</title>
+<style>
+@font-face { font-family: 'Jakarta'; font-weight: 800; src: url(a/plus-jakarta-sans-latin-800-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Script'; font-weight: 400; src: url(a/kaushan-script-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Mono'; font-weight: 600; src: url(a/jetbrains-mono-latin-600-normal.woff2) format('woff2'); }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1080px; height: 1350px; overflow: hidden; background: #3346e0; }
+#gl { position: absolute; inset: 0; width: 1080px; height: 1350px; display: block; }
+.ov { position: absolute; left: 0; right: 0; text-align: center; color: #fff; opacity: 0; }
+.mono { font: 600 26px 'Mono'; letter-spacing: 0.24em; text-transform: uppercase; text-shadow: 0 2px 16px #1e2278aa; }
+h2 { font: 800 96px 'Jakarta'; letter-spacing: -0.035em; line-height: 1.04; text-shadow: 0 6px 40px #1e2278aa; }
+.script { font-family: 'Script'; font-weight: 400; letter-spacing: 0; display: inline-block; position: relative; transform: rotate(-4deg); text-shadow: 0 0 40px #ff5fa2aa; padding: 0 0.06em; font-size: 1.15em; }
+.script::after { content: ''; position: absolute; left: 4%; right: 6%; bottom: -0.1em; height: 0.085em; border-radius: 99px; background: linear-gradient(90deg, #ff5fa2, #ff7a7a, #ffb37a); box-shadow: 0 0 20px #ff5fa2aa; }
+.vig { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 85% 75% at 50% 45%, transparent 60%, #2a279066 100%); }
+.flash { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 50%, #ffffff, #ffd6ec 35%, #ff5fa200 75%); }
+</style>
+</head>
+<body>
+<canvas id="gl" width="1080" height="1350"></canvas>
+<div class="vig"></div>
+<p class="ov mono" id="o1" style="top:120px">Vol VT 2026 · Décollage</p>
+<h2 class="ov" id="o2" style="top:170px">Cap sur le <span class="script">Village !</span></h2>
+<div class="flash" id="fl"></div>
+<script src="a/three.min.js"></script>
+<script>
+const W = 1080, H = 1350, DUR = 5.0;
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gl'), antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H, false);
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(42, W / H, 0.5, 4000);
+const SUN = new THREE.Vector3(1, 0.16, -0.45).normalize();
+
+/* ---------- ciel : dégradé du Village ---------- */
+const skyMat = new THREE.ShaderMaterial({
+	side: THREE.BackSide, depthWrite: false,
+	uniforms: { sun: { value: SUN } },
+	vertexShader: `varying vec3 vd; void main(){ vd = normalize((modelMatrix*vec4(position,1.)).xyz - cameraPosition); gl_Position = projectionMatrix*viewMatrix*modelMatrix*vec4(position,1.); }`,
+	fragmentShader: `uniform vec3 sun; varying vec3 vd;
+		void main(){
+			float h = clamp(vd.y, -0.2, 1.0);
+			vec3 hor = vec3(1.0, 0.70, 0.55), pink = vec3(1.0, 0.56, 0.77), vio = vec3(0.48, 0.36, 1.0), blue = vec3(0.20, 0.27, 0.88);
+			vec3 c = mix(hor, pink, smoothstep(0.0, 0.08, h));
+			c = mix(c, vio, smoothstep(0.08, 0.28, h));
+			c = mix(c, blue, smoothstep(0.28, 0.75, h));
+			float s = max(dot(vd, sun), 0.0);
+			c += vec3(1.0, 0.85, 0.7) * (pow(s, 600.0) * 4.0 + pow(s, 12.0) * 0.35);
+			gl_FragColor = vec4(c, 1.0);
+		}`,
+});
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(3000, 32, 16), skyMat));
+
+/* ---------- mer turquoise ---------- */
+const seaMat = new THREE.ShaderMaterial({
+	uniforms: { time: { value: 0 }, sun: { value: SUN } },
+	vertexShader: `varying vec3 wp; void main(){ vec4 w = modelMatrix*vec4(position,1.); wp = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`,
+	fragmentShader: `uniform float time; uniform vec3 sun; varying vec3 wp;
+		vec2 grad(vec2 p){
+			vec2 g = vec2(0.);
+			vec2 d1 = normalize(vec2(1.,.3)), d2 = normalize(vec2(-.4,1.)), d3 = normalize(vec2(.7,-.8)), d4 = normalize(vec2(-1.,-.2));
+			g += d1 * cos(dot(d1,p)*0.35 + time*1.6) * 0.35*0.10;
+			g += d2 * cos(dot(d2,p)*0.62 + time*2.1) * 0.62*0.06;
+			g += d3 * cos(dot(d3,p)*1.30 + time*2.9) * 1.30*0.03;
+			g += d4 * cos(dot(d4,p)*2.70 + time*3.7) * 2.70*0.012;
+			return g;
+		}
+		void main(){
+			vec2 g = grad(wp.xz);
+			vec3 n = normalize(vec3(-g.x, 1.0, -g.y));
+			vec3 v = normalize(cameraPosition - wp);
+			float fres = pow(1.0 - max(dot(n, v), 0.0), 4.0);
+			vec3 deep = vec3(0.02, 0.33, 0.62), shallow = vec3(0.10, 0.78, 0.86), lagoon = vec3(0.45, 0.93, 0.88);
+			float dI = min(length(wp.xz - vec2(95.,-48.)) - 30., length(wp.xz - vec2(150.,22.)) - 13.);
+			vec3 c = mix(lagoon, shallow, smoothstep(0., 22., dI));
+			c = mix(c, deep, smoothstep(30., 140., dI) * 0.6);
+			vec3 sky = vec3(1.0, 0.66, 0.80);
+			c = mix(c, sky, fres * 0.55);
+			vec3 r = reflect(-sun, n);
+			float spec = pow(max(dot(r, v), 0.0), 220.0) * 3.0 + pow(max(dot(r, v), 0.0), 18.0) * 0.18;
+			c += vec3(1.0, 0.92, 0.82) * spec;
+			float dist = length(wp - cameraPosition);
+			c = mix(c, vec3(1.0, 0.72, 0.68), smoothstep(250., 1600., dist));
+			gl_FragColor = vec4(c, 1.0);
+		}`,
+});
+const sea = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), seaMat);
+sea.rotation.x = -Math.PI / 2;
+scene.add(sea);
+
+/* ---------- lumière ---------- */
+const sunLight = new THREE.DirectionalLight(0xfff0e2, 2.4);
+sunLight.position.copy(SUN).multiplyScalar(100);
+scene.add(sunLight);
+scene.add(new THREE.HemisphereLight(0xc9b8ff, 0x37d3dd, 1.0));
+
+/* ---------- îles ---------- */
+let seed = 7; const rnd = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296;
+function island(cx, cz, r) {
+	const g = new THREE.Group();
+	const sand = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.06, r * 1.15, 1.2, 40), new THREE.MeshStandardMaterial({ color: 0xf2e2b8, roughness: 1 }));
+	sand.position.set(cx, -0.3, cz); g.add(sand);
+	const greens = [0x1d6b45, 0x24804f, 0x2f9458, 0x1a5e3f];
+	for (let i = 0; i < r * 5; i++) {
+		const a = rnd() * Math.PI * 2, d = Math.sqrt(rnd()) * r * 0.92;
+		const s = 2.2 + rnd() * 3.2;
+		const m = new THREE.Mesh(new THREE.IcosahedronGeometry(s, 0), new THREE.MeshStandardMaterial({ color: greens[i % 4], roughness: 0.9, flatShading: true }));
+		const edge = 1 - d / r;
+		m.position.set(cx + Math.cos(a) * d, 0.4 + edge * 5 + rnd() * 1.5, cz + Math.sin(a) * d);
+		m.scale.y = 0.75;
+		g.add(m);
+	}
+	scene.add(g);
+}
+island(95, -48, 30);
+island(150, 22, 13);
+island(-60, -140, 22);
+
+/* ---------- textures du Village ---------- */
+function decal(draw, w, h) {
+	const c = document.createElement('canvas'); c.width = w; c.height = h;
+	draw(c.getContext('2d'), w, h);
+	const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = 4; return t;
+}
+function vPath(ctx, x, y, s) {
+	const P = (pts, col) => { ctx.fillStyle = col; ctx.beginPath(); pts.forEach(([px, py], i) => (i ? ctx.lineTo : ctx.moveTo).call(ctx, x + (px - 200) * s, y + (py - 280) * s)); ctx.closePath(); ctx.fill(); };
+	P([[216, 297], [312, 297], [541, 600], [541, 826]], '#8ec5ff');
+	P([[750, 297], [864, 297], [541, 826], [541, 600]], '#3b82f6');
+	P([[573, 297], [669, 297], [540, 487], [490, 418]], '#3b82f6');
+}
+
+/* ---------- l'hydravion ---------- */
+const white = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0.05 });
+const violet = new THREE.MeshStandardMaterial({ color: 0x7b5cff, roughness: 0.4 });
+const pink = new THREE.MeshStandardMaterial({ color: 0xff5fa2, roughness: 0.4 });
+const dark = new THREE.MeshStandardMaterial({ color: 0x1e2278, roughness: 0.2, metalness: 0.3 });
+const grey = new THREE.MeshStandardMaterial({ color: 0x9aa0c8, roughness: 0.6 });
+const plane = new THREE.Group();
+const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, rz); plane.add(m); return m; };
+// fuselage (axe x)
+add(new THREE.CylinderGeometry(0.85, 0.85, 4.6, 24), white, 0.6, 0, 0, 0, 0, Math.PI / 2);
+add(new THREE.CylinderGeometry(0.85, 0.28, 4.4, 24), white, -3.9, 0.12, 0, 0, 0, Math.PI / 2);
+add(new THREE.SphereGeometry(0.85, 24, 16), white, 2.9, 0, 0);
+// capot moteur + bande rose
+add(new THREE.CylinderGeometry(0.95, 0.9, 1.0, 24), pink, 3.3, 0, 0, 0, 0, Math.PI / 2);
+add(new THREE.CylinderGeometry(0.5, 0.95, 0.45, 24), violet, 3.98, 0, 0, 0, 0, Math.PI / 2);
+// cockpit
+add(new THREE.BoxGeometry(1.6, 0.55, 1.5), dark, 1.9, 0.62, 0, 0, 0, -0.25);
+// bandes violettes sur le fuselage
+add(new THREE.CylinderGeometry(0.87, 0.87, 0.35, 24), violet, -0.9, 0, 0, 0, 0, Math.PI / 2);
+add(new THREE.CylinderGeometry(0.87, 0.87, 0.18, 24), pink, -1.3, 0, 0, 0, 0, Math.PI / 2);
+// marquage « VT 2026 » sur les flancs
+const vtTex = decal((ctx, w, h) => { ctx.clearRect(0, 0, w, h); ctx.fillStyle = '#7b5cff'; ctx.font = '800 150px Jakarta'; ctx.textBaseline = 'middle'; ctx.fillText('VT 2026', 20, h / 2 + 6); }, 1024, 220);
+for (const s of [1, -1]) {
+	const m = add(new THREE.PlaneGeometry(3.2, 0.68), new THREE.MeshStandardMaterial({ map: vtTex, transparent: true, roughness: 0.4 }), -2.4, 0.05, 0.86 * s * 0.93, 0, s > 0 ? 0 : Math.PI, 0);
+	m.rotation.x = 0;
+}
+// aile haute
+add(new THREE.BoxGeometry(2.1, 0.2, 16), white, 1.0, 1.15, 0);
+for (const s of [1, -1]) {
+	add(new THREE.BoxGeometry(2.12, 0.22, 2.6), violet, 1.0, 1.15, 6.2 * s);
+	add(new THREE.BoxGeometry(2.12, 0.22, 0.6), pink, 1.0, 1.15, 4.6 * s);
+	// haubans
+	add(new THREE.CylinderGeometry(0.06, 0.06, 3.3), grey, 0.8, 0.0, 2.2 * s, 0.95 * s, 0, 0);
+}
+// dérive avec le V
+const finTex = decal((ctx, w, h) => { const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#7b5cff'); g.addColorStop(1, '#ff5fa2'); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.roundRect(70, 60, 380, 340, 60); ctx.fill(); vPath(ctx, 95, 85, 0.5); }, 512, 512);
+const finMat = new THREE.MeshStandardMaterial({ map: finTex, roughness: 0.4 });
+const fin = add(new THREE.BoxGeometry(1.9, 2.2, 0.16), [white, white, white, white, finMat, finMat], -5.6, 1.25, 0, 0, 0, 0.22);
+add(new THREE.BoxGeometry(1.4, 0.12, 5.6), white, -5.8, 0.3, 0);
+for (const s of [1, -1]) add(new THREE.BoxGeometry(1.42, 0.14, 0.9), violet, -5.8, 0.3, 2.4 * s);
+// hélice
+const prop = new THREE.Group(); prop.position.set(4.25, 0, 0); plane.add(prop);
+const blade = new THREE.BoxGeometry(0.08, 3.6, 0.3);
+prop.add(new THREE.Mesh(blade, dark));
+const b2 = new THREE.Mesh(blade, dark); b2.rotation.x = Math.PI / 2; prop.add(b2);
+const disc = new THREE.Mesh(new THREE.CircleGeometry(1.85, 40), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.13 }));
+disc.rotation.y = Math.PI / 2; disc.position.x = 4.3; plane.add(disc);
+add(new THREE.SphereGeometry(0.28, 16, 12), pink, 4.4, 0, 0);
+// flotteurs
+for (const s of [1, -1]) {
+	add(new THREE.CylinderGeometry(0.42, 0.42, 6.6, 18), white, 0.3, -1.85, 1.55 * s, 0, 0, Math.PI / 2);
+	add(new THREE.ConeGeometry(0.42, 1.4, 18), white, 4.3, -1.85, 1.55 * s, 0, 0, -Math.PI / 2);
+	add(new THREE.CylinderGeometry(0.43, 0.43, 0.5, 18), violet, 2.6, -1.85, 1.55 * s, 0, 0, Math.PI / 2);
+	add(new THREE.CylinderGeometry(0.07, 0.07, 1.5), grey, 1.6, -1.05, 1.0 * s, 0.5 * s, 0, 0);
+	add(new THREE.CylinderGeometry(0.07, 0.07, 1.5), grey, -1.0, -1.05, 1.0 * s, 0.5 * s, 0, 0);
+}
+plane.scale.setScalar(1.15);
+scene.add(plane);
+
+/* ---------- trajectoire ---------- */
+const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const lerp = (a, b, k) => a + (b - a) * k;
+function planeAt(T) {
+	const x = -40 + 17 * T + 4.5 * T * T;
+	const lift = Math.max(0, T - 1.9);
+	const y = 2.12 + 5.5 * lift * lift + 0.06 * Math.sin(T * 20) * (T < 1.9 ? 1 : 0);
+	const z = -2.2 * Math.max(0, T - 3.0) ** 2;
+	const pitch = 0.22 * sm(1.5, 2.4, T) - 0.06 * sm(3.6, 4.6, T);
+	const roll = -0.38 * sm(3.0, 4.2, T);
+	const yaw = Math.atan2(4.4 * Math.max(0, T - 3.0), 17 + 9 * T);
+	return { x, y, z, pitch, roll, yaw };
+}
+
+/* ---------- gerbes d'eau et sillage ---------- */
+const N = 1400;
+const sprayGeo = new THREE.BufferGeometry();
+const pos = new Float32Array(N * 3), alpha = new Float32Array(N);
+sprayGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+sprayGeo.setAttribute('a', new THREE.BufferAttribute(alpha, 1));
+const sprayMat = new THREE.ShaderMaterial({
+	transparent: true, depthWrite: false,
+	vertexShader: `attribute float a; varying float va; void main(){ va = a; vec4 mv = modelViewMatrix*vec4(position,1.); gl_PointSize = 420.0 / -mv.z; gl_Position = projectionMatrix*mv; }`,
+	fragmentShader: `varying float va; void main(){ vec2 c = gl_PointCoord - .5; float d = length(c); if (d > .5) discard; gl_FragColor = vec4(1.,1.,1., va * smoothstep(.5, .1, d)); }`,
+});
+const sprayPts = new THREE.Points(sprayGeo, sprayMat); sprayPts.frustumCulled = false; scene.add(sprayPts);
+const P0 = Array.from({ length: N }, () => ({ tb: rnd() * 2.6, side: rnd() < 0.5 ? -1 : 1, vx: -2 - rnd() * 6, vy: 2 + rnd() * 6, vz: (rnd() - 0.2) * 4, wake: rnd() < 0.45, life: 0.6 + rnd() * 1.4 }));
+function updateSpray(T) {
+	for (let i = 0; i < N; i++) {
+		const p = P0[i], age = T - p.tb;
+		const b = planeAt(p.tb);
+		const onWater = p.tb < 2.15;
+		if (age < 0 || age > p.life || !onWater) { alpha[i] = 0; pos[i * 3 + 1] = -50; continue; }
+		const speed = Math.min(1, p.tb / 1.2);
+		if (p.wake) {
+			pos[i * 3] = b.x - 2 + p.vx * 0.15 * age; pos[i * 3 + 1] = 0.05; pos[i * 3 + 2] = b.z + p.side * (1.8 + age * 1.6);
+			alpha[i] = 0.75 * (1 - age / p.life) * speed;
+		} else {
+			pos[i * 3] = b.x + 1.5 + p.vx * age; pos[i * 3 + 1] = Math.max(0, 0.2 + p.vy * age * speed - 6 * age * age); pos[i * 3 + 2] = b.z + p.side * (1.9 + p.vz * age);
+			alpha[i] = 0.8 * (1 - age / p.life) * speed;
+		}
+	}
+	sprayGeo.attributes.position.needsUpdate = true;
+	sprayGeo.attributes.a.needsUpdate = true;
+}
+
+/* ---------- caméra ---------- */
+function cameraAt(T, pl) {
+	const k1 = sm(1.6, 3.2, T), k2 = sm(3.0, 4.6, T);
+	const a = new THREE.Vector3(pl.x + 2 - 2 * Math.min(T, 1.8), 4.6, 36);   // rase-mottes, de côté
+	const b = new THREE.Vector3(pl.x - 22, pl.y + 14, 24);      // on monte avec lui
+	const c = new THREE.Vector3(pl.x - 30, pl.y + 24, 20);      // vue aérienne 3/4
+	const p = a.clone().lerp(b, k1).lerp(c, k2);
+	const look = new THREE.Vector3(pl.x + lerp(-0.5, 10, k2), pl.y + lerp(1.6, -4, Math.max(k1 * 0.5, k2)), pl.z);
+	return { p, look };
+}
+
+/* ---------- textes ---------- */
+const ov = (id, t, a, b) => { const el = document.getElementById(id); const k = sm(a, a + 0.45, t) * (1 - sm(b, b + 0.3, t)); el.style.opacity = k; el.style.transform = `translateY(${(1 - sm(a, a + 0.45, t)) * 30}px)`; };
+
+window.seek = (T) => {
+	const pl = planeAt(T);
+	plane.position.set(pl.x, pl.y, pl.z);
+	plane.rotation.set(pl.roll, -pl.yaw, pl.pitch, 'YXZ');
+	plane.rotation.order = 'YZX';
+	plane.rotation.set(pl.roll, -pl.yaw, pl.pitch);
+	prop.rotation.x = T * 60;
+	seaMat.uniforms.time.value = T + 3;
+	updateSpray(T);
+	const { p, look } = cameraAt(T, pl);
+	camera.position.copy(p);
+	camera.lookAt(look);
+	renderer.render(scene, camera);
+	ov('o1', T, 0.25, 2.6);
+	ov('o2', T, 3.0, 9);
+	document.getElementById('fl').style.opacity = Math.max(0, 1 - T / 0.35) * 0.85 + sm(4.72, 5.0, T) * 0.95;
+};
+window.ready = document.fonts.ready.then(() => { vtTex.needsUpdate = true; seek(0); });
+</script>
+</body>
+</html>

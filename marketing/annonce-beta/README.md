@@ -59,3 +59,18 @@ le Village Pass qui se remplit (sans personnage), la carte d'embarquement, le ta
 python3 music3.py out/music3.wav
 node render3.cjs "$PWD" "$PWD/out/village-billet-4x5.mp4"
 ```
+
+## Teaser v4 avec le décollage (28,5 s)
+
+v3 + une scène 3D (Three.js) : l'hydravion du Village décolle de la mer turquoise et survole une île,
+« Cap sur le Village ! », puis la fin. Aucune image externe : tout est généré.
+
+```sh
+npm i three@0.149.0 && cp node_modules/three/build/three.min.js a/
+python3 music4.py out/music4.wav
+node render-seg.cjs "$PWD/takeoff.html" "$PWD/out/takeoff.mp4" 5.0
+# assemblage : v3 [0–19,4 s] + décollage [5 s] + v3 [19,4–23,5 s] + music4.wav
+ffmpeg -i out/village-billet-4x5.mp4 -i out/takeoff.mp4 -i out/music4.wav -filter_complex \
+  "[0:v]trim=0:19.4,setpts=PTS-STARTPTS[a];[1:v]trim=0:5,setpts=PTS-STARTPTS[t];[0:v]trim=19.4:23.5,setpts=PTS-STARTPTS[e];[a][t][e]concat=n=3:v=1:a=0,fps=30[v]" \
+  -map "[v]" -map 2:a -c:v libx264 -crf 17 -pix_fmt yuv420p -c:a aac -shortest out/village-decollage-4x5.mp4
+```
