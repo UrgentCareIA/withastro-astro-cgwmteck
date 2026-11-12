@@ -36,3 +36,16 @@ ffmpeg -i out/teaser-4x5.mp4 -filter_complex "[0:v]split[a][b];[a]scale=1536:192
 ```
 
 Pour changer un texte : modifier `comp.html` (titres des scènes, liste `LIEUX`) ou `posters.html`, puis relancer le rendu.
+
+## Teaser « Viens chercher ton billet » (v2, 19,5 s)
+
+L'intro (hyperespace, logo, « La bêta est lancée ! ») puis une carte d'embarquement qui se remplit
+comme la carte de l'entrepreneur, le tampon « Place confirmée », le tableau des départs
+« Dernier appel pour le Village ! » et la fin « Viens chercher ton billet ! ».
+
+```sh
+python3 music2.py out/music2.wav
+node render2.cjs "$PWD" "$PWD/out/billet-4x5.mp4"
+```
+
+Pour changer les infos du billet : attributs `data-f` (texte) et `data-t` (moment d'apparition) dans `billet.html`.
