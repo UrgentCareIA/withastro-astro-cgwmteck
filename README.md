@@ -1,4 +1,4 @@
-# VillageTech — landing page & portail d'accès bêta
+# Le Village Tech — landing page & portail d'accès bêta
 
 Site statique (Astro) : landing page + formulaire de demande d'accès à la bêta gratuite.
 Les demandes sont stockées dans Supabase (offre gratuite). Vous les validez à la main, puis activez le compte sur Higgsfield.
@@ -23,3 +23,7 @@ Supabase → Table Editor → `beta_requests` (ou la vue `beta_a_traiter` pour c
 
 Le site public peut seulement *ajouter* une demande : personne ne peut lire la liste depuis le site.
 Une même adresse email ne peut faire qu'une seule demande.
+
+## Images
+Les visuels de `public/images/` sont découpés depuis les slides de la visite guidée (1080 px de large).
+Pour un rendu plus net sur grand écran, remplacez-les par des captures HD (mêmes noms de fichiers).

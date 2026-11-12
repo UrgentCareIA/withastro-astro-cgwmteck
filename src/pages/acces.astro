@@ -4,11 +4,14 @@ import Layout from '../layouts/Layout.astro';
 const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfield.ai';
 ---
 
-<Layout title="Portail d'accès — VillageTech" description="Demande ton accès à la bêta gratuite de VillageTech.">
+<Layout title="Portail d'accès — Le Village Tech" description="Demande ton accès à la bêta gratuite du Village Tech.">
 	<section class="portal wrap">
 		<aside class="side">
+			<div class="side-img">
+				<img src="/images/accueil.webp" alt="L'hôtesse de l'accueil du Village Tech" width="948" height="736" />
+			</div>
 			<p class="eyebrow">Portail d'accès</p>
-			<h1>Demande ton entrée au village.</h1>
+			<h1>Demande ton entrée au Village.</h1>
 			<p class="dim">
 				La bêta est gratuite. On lit chaque demande et on active ton compte nous-mêmes sur
 				Higgsfield. Tu reçois un mail dès que la porte est ouverte.
@@ -23,7 +26,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 			<div class="already">
 				<p><strong>Déjà validé ?</strong></p>
 				<a class="btn-ghost" href={higgsfieldUrl} target="_blank" rel="noopener">
-					Entrer dans le village ↗
+					Entrer dans le Village ↗
 				</a>
 			</div>
 		</aside>
@@ -80,7 +83,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 				</label>
 
 				<label>
-					<span>Qu'est-ce que tu viens chercher dans le village ? *</span>
+					<span>Qu'est-ce que tu viens chercher dans le Village ? *</span>
 					<textarea name="motivation" required rows="4" maxlength="1000"></textarea>
 				</label>
 
@@ -98,7 +101,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 				<label class="consent">
 					<input type="checkbox" name="consent" required />
 					<span>
-						J'accepte que VillageTech utilise ces informations pour gérer mon accès à la bêta et
+						J'accepte que Le Village Tech utilise ces informations pour gérer mon accès à la bêta et
 						me contacter à ce sujet. <a href="/confidentialite">En savoir plus</a>
 					</span>
 				</label>
@@ -218,13 +221,25 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		}
 	}
 	.side {
-		position: sticky;
-		top: 100px;
+		position: static;
 	}
 	@media (max-width: 880px) {
 		.side {
 			position: static;
 		}
+	}
+	.side-img {
+		border-radius: var(--radius);
+		overflow: hidden;
+		border: 1px solid #8ec5ff40;
+		margin-bottom: 32px;
+		aspect-ratio: 16 / 10;
+	}
+	.side-img img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: 0% 50%;
 	}
 	.side h1 {
 		font-size: clamp(2.2rem, 5vw, 3.4rem);
@@ -252,8 +267,8 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		height: 9px;
 		margin-top: -4px;
 		border-radius: 50%;
-		background: var(--lantern);
-		box-shadow: 0 0 10px var(--lantern);
+		background: var(--sky);
+		box-shadow: 0 0 10px var(--sky);
 	}
 	.already {
 		margin-top: 32px;
@@ -265,9 +280,10 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	}
 
 	.card {
-		background: var(--night-2);
-		border: 1px solid var(--line);
-		border-radius: 20px;
+		background: linear-gradient(180deg, var(--bg-3), var(--bg-2));
+		border: 1px solid #8ec5ff30;
+		border-radius: var(--radius);
+		box-shadow: 0 40px 80px -40px #000;
 		padding: 32px;
 	}
 	@media (max-width: 520px) {
@@ -304,7 +320,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		font-weight: 400;
 		font-size: 1rem;
 		color: var(--ink);
-		background: var(--night);
+		background: var(--bg);
 		border: 1px solid var(--line);
 		border-radius: 10px;
 		padding: 12px 14px;
@@ -317,8 +333,8 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	select:focus,
 	textarea:focus {
 		outline: none;
-		border-color: var(--lantern);
-		box-shadow: 0 0 0 3px var(--lantern-soft);
+		border-color: var(--sky);
+		box-shadow: 0 0 0 3px var(--blue-soft);
 	}
 	small {
 		color: var(--ink-dim);
@@ -342,7 +358,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		height: 18px;
 		margin-top: 3px;
 		flex: none;
-		accent-color: var(--lantern);
+		accent-color: var(--sky);
 	}
 	.error {
 		margin: 0;
@@ -367,7 +383,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		height: 22px;
 		margin: 0 auto 22px;
 		border-radius: 50%;
-		background: var(--lantern);
-		box-shadow: 0 0 30px 10px #f4a93b66;
+		background: var(--online);
+		box-shadow: 0 0 40px 12px #3b82f677;
 	}
 </style>

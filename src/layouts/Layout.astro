@@ -7,8 +7,8 @@ interface Props {
 }
 
 const {
-	title = 'VillageTech — le village virtuel des entrepreneurs',
-	description = "VillageTech est un monde virtuel gratuit où les entrepreneurs se rencontrent, s'entraident et construisent ensemble. Bêta privée : demandez votre accès.",
+	title = 'Le Village Tech — le siège social numérique de ton entreprise',
+	description = "Le Village Tech est un monde en 3D où ton équipe travaille, se croise et se parle, comme au bureau, sans le trajet. Bêta gratuite : demande ton accès.",
 } = Astro.props;
 ---
 
@@ -17,30 +17,31 @@ const {
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" type="image/png" href="/favicon.png" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta name="theme-color" content="#080e1c" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 		<meta name="description" content={description} />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
 		<meta property="og:type" content="website" />
+		<meta property="og:image" content="/images/hero.webp" />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Space+Grotesk:wght@400;500;600&display=swap"
 			rel="stylesheet"
 		/>
 	</head>
 	<body>
 		<header class="nav">
-			<a href="/" class="brand" aria-label="VillageTech, accueil">
-				<span class="brand-mark" aria-hidden="true">
-					<svg viewBox="0 0 32 32" width="28" height="28"><path d="M4 26V15l6-5 6 5v11M16 26V11l6-6 6 6v15M2 26h28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="22" cy="14" r="1.8" fill="var(--lantern)"/></svg>
-				</span>
-				VillageTech
+			<a href="/" class="brand" aria-label="Le Village Tech, accueil">
+				<img src="/images/logo.png" alt="" width="36" height="36" />
+				<span>Le Village Tech</span>
 			</a>
 			<nav class="nav-links" aria-label="Navigation principale">
-				<a href="/#village">Le village</a>
+				<a href="/#visite">Visite guidée</a>
 				<a href="/#beta">La bêta</a>
 				<a href="/#faq">FAQ</a>
 				<a href="/acces" class="btn btn-small">Portail d'accès</a>
@@ -50,8 +51,8 @@ const {
 			<slot />
 		</main>
 		<footer class="footer">
-			<p>VillageTech · bêta privée · 100 % gratuit</p>
-			<p><a href="/confidentialite">Confidentialité</a></p>
+			<a href="/" class="brand"><img src="/images/logo.png" alt="" width="28" height="28" /> Le Village Tech</a>
+			<p>Bêta gratuite · <a href="/confidentialite">Confidentialité</a></p>
 		</footer>
 	</body>
 </html>
