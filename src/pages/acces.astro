@@ -65,17 +65,18 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		</header>
 
 		<main class="stage">
-			<!-- ====== HÔTESSE (grand écran) ====== -->
+			<!-- ====== ENZO, LE GUIDE (grand écran) ====== -->
 			<aside class="host-col" aria-hidden="true">
 				<div class="bubble" id="bubble">
-					<p class="bubble-name mono">Hôtesse d'accueil <i class="live"></i></p>
+					<p class="bubble-name mono">Enzo · Guide du Village <i class="live"></i></p>
 					<p class="bubble-text"><span class="say" data-say></span><span class="caret"></span></p>
 				</div>
 				<div class="host" id="host">
 					<div class="host-beam"></div>
-					<div class="host-fig"><img class="host-img" src="/images/hotesse.webp" alt="" width="214" height="512" /></div>
-					<span class="host-lens"></span>
-					<span class="host-scan"></span>
+					<div class="host-fig">
+						<span class="host-tag"><i></i>Enzo Benali<i></i></span>
+						<img class="host-img" src="/images/enzo.webp" alt="" width="156" height="410" />
+					</div>
 					<div class="host-base"><i></i><i></i><i></i></div>
 				</div>
 			</aside>
@@ -141,9 +142,9 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 				<span class="wipe" aria-hidden="true"></span>
 
 				<div class="comm" aria-hidden="true">
-					<div class="comm-face"><img src="/images/hotesse-face.webp" alt="" width="64" height="64" /></div>
+					<div class="comm-face"><img src="/images/enzo-face.webp" alt="" width="64" height="64" /></div>
 					<div class="comm-body">
-						<p class="comm-name mono">Hôtesse d'accueil <i class="live"></i></p>
+						<p class="comm-name mono">Enzo · Guide du Village <i class="live"></i></p>
 						<p class="comm-text"><span class="say" data-say></span><span class="caret"></span></p>
 					</div>
 				</div>
@@ -957,7 +958,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 
 <script>
 	/* =========================================================
-	   L'HÔTESSE : elle accueille, guide et réagit
+	   ENZO, LE GUIDE : il accueille, guide et réagit
 	   ========================================================= */
 	const reducedHost = matchMedia('(prefers-reduced-motion: reduce)').matches;
 	const portalEl = document.querySelector('.portal') as HTMLElement;
@@ -972,7 +973,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	const pickVoice = () => {
 		const vs = window.speechSynthesis?.getVoices() ?? [];
 		const fr = vs.filter((v) => v.lang?.toLowerCase().startsWith('fr'));
-		voice = fr.find((v) => /amelie|audrey|aurelie|marie|julie|denise|google fran|female|femme/i.test(v.name)) ?? fr[0] ?? null;
+		voice = fr.find((v) => /thomas|nicolas|paul|henri|daniel|mathieu|antoine|claude|male|homme/i.test(v.name) && !/female|femme/i.test(v.name)) ?? fr.find((v) => /google fran/i.test(v.name)) ?? fr[0] ?? null;
 	};
 	if ('speechSynthesis' in window) {
 		pickVoice();
@@ -985,7 +986,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		u.lang = 'fr-FR';
 		if (voice) u.voice = voice;
 		u.rate = 1.04;
-		u.pitch = 1.15;
+		u.pitch = 0.95;
 		u.volume = 0.9;
 		speechSynthesis.speak(u);
 	};
@@ -1060,7 +1061,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		const back = location.hash === '#connexion';
 		say(back
 			? 'Content de te revoir ! Donne-moi ton email et ton pseudo Higgsfield, je regarde où en est ton accès.'
-			: 'Bienvenue au Village Tech ! Je suis l’hôtesse d’accueil. Je vais préparer ton Village Pass avec toi.', 'happy');
+			: 'Bienvenue au Village Tech ! Moi c’est Enzo, je vais te faire entrer. On prépare ton Village Pass ensemble ?', 'happy');
 		armIdle();
 	};
 	let greeted = false;
@@ -1076,7 +1077,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 			const n = firstName();
 			if (n.length >= 2 && n !== greetedName) {
 				greetedName = n;
-				say(`Enchantée, ${n} ! Ton pass commence à prendre forme, regarde.`, 'happy');
+				say(`Enchanté, ${n} ! Ton pass commence à prendre forme, regarde.`, 'happy');
 			}
 		}, 900);
 	});
@@ -1116,7 +1117,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		const lines: Record<string, [string, 'happy' | 'think' | 'alert']> = {
 			valide: ['Ton accès est ouvert. Bienvenue au Village ! Clique sur « Entrer », je t’attends à l’intérieur.', 'happy'],
 			en_attente: ['Ta demande est bien là. L’équipe s’en occupe, tu recevras un mail très vite.', 'think'],
-			refuse: ['Désolée, ta demande n’a pas été retenue pour cette bêta. Écris à l’équipe si tu penses que c’est une erreur.', 'alert'],
+			refuse: ['Désolé, ta demande n’a pas été retenue pour cette bêta. Écris à l’équipe si tu penses que c’est une erreur.', 'alert'],
 			introuvable: ['Je ne te trouve pas… Vérifie ton email et ton pseudo, ou fais une demande dans l’autre onglet.', 'alert'],
 		};
 		const [line, mood] = lines[st] ?? lines.introuvable;
@@ -2839,7 +2840,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 			border-color 0.2s;
 	}
 
-	/* ================= HÔTESSE ================= */
+	/* ================= ENZO, LE GUIDE ================= */
 	.host-col {
 		display: none;
 	}
@@ -2877,7 +2878,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		width: 100%;
 		min-height: 120px;
 		padding: 16px 18px;
-		margin-bottom: 18px;
+		margin-bottom: 62px;
 		border-radius: 14px 14px 14px 4px;
 		background: linear-gradient(180deg, #12244acc, #0a1430e6);
 		border: 1px solid #8ec5ff55;
@@ -2974,19 +2975,52 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		height: min(52vh, 470px);
 		width: auto;
 		display: block;
-		-webkit-mask-image: repeating-linear-gradient(180deg, #000 0 3px, #000c 3px 4px),
-			linear-gradient(180deg, #000 82%, transparent);
-		-webkit-mask-composite: source-in;
-		mask-image: repeating-linear-gradient(180deg, #000 0 3px, #000c 3px 4px),
-			linear-gradient(180deg, #000 82%, transparent);
-		mask-composite: intersect;
+		-webkit-mask-image: linear-gradient(180deg, #000 88%, transparent);
+		mask-image: linear-gradient(180deg, #000 88%, transparent);
 		transform-origin: 50% 100%;
-		animation: hostIdle 5s ease-in-out infinite, hostFlicker 7s steps(1) infinite;
+		animation: hostIdle 6s ease-in-out infinite;
 	}
 	.host-fig {
 		position: relative;
-		filter: drop-shadow(0 0 2px #8ec5ff) drop-shadow(0 0 22px #3b82f6aa) saturate(0.9);
+		filter: brightness(1.18) contrast(1.05) drop-shadow(0 0 1.5px #8ec5ffcc) drop-shadow(0 0 18px #3b82f688);
 		transition: filter 0.6s;
+	}
+	.host-tag {
+		position: absolute;
+		left: 50%;
+		top: -46px;
+		translate: -50% 0;
+		z-index: 2;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 5px 12px;
+		white-space: nowrap;
+		border-radius: 999px;
+		border: 2px solid #34c76f;
+		background: #0a1220e6;
+		color: #fff;
+		font: 600 0.95rem var(--font-body);
+		box-shadow: 0 0 18px -2px #34c76f88;
+		animation: hostIdle 6s ease-in-out infinite;
+	}
+	.host-tag i {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: #34c76f;
+		box-shadow: 0 0 8px #34c76f;
+	}
+	.portal.talking .host-tag i {
+		animation: blink 0.45s steps(2) infinite;
+	}
+	.portal[data-mood='alert'] .host-tag {
+		border-color: #ff8a7a;
+		box-shadow: 0 0 18px -2px #ff8a7a88;
+	}
+	.portal[data-mood='alert'] .host-tag i {
+		background: #ff8a7a;
+		box-shadow: 0 0 8px #ff8a7a;
 	}
 	@keyframes hostIdle {
 		0%,
@@ -2994,94 +3028,21 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 			transform: translateY(0) rotate(0);
 		}
 		50% {
-			transform: translateY(-8px) rotate(-0.6deg);
-		}
-	}
-	@keyframes hostFlicker {
-		0%,
-		100% {
-			opacity: 1;
-		}
-		62% {
-			opacity: 1;
-		}
-		63% {
-			opacity: 0.55;
-			translate: 3px 0;
-		}
-		64% {
-			opacity: 1;
-			translate: 0 0;
-		}
-		65% {
-			opacity: 0.8;
-		}
-		66% {
-			opacity: 1;
+			transform: translateY(-3px) scaleY(1.006);
 		}
 	}
 	.host.nod .host-img {
-		animation: hostNod 0.6s cubic-bezier(0.3, 1.6, 0.5, 1), hostIdle 5s 0.6s ease-in-out infinite;
+		animation: hostNod 0.5s cubic-bezier(0.3, 1.6, 0.5, 1), hostIdle 6s 0.5s ease-in-out infinite;
 	}
 	@keyframes hostNod {
 		0% {
 			transform: translateY(0) scale(1);
 		}
 		40% {
-			transform: translateY(-10px) scale(1.02);
+			transform: translateY(-6px) scale(1.01);
 		}
 		100% {
 			transform: translateY(0) scale(1);
-		}
-	}
-	.host-lens {
-		position: absolute;
-		left: calc(50% - 6px);
-		top: 6.9%;
-		width: 9px;
-		height: 9px;
-		border-radius: 50%;
-		background: #8ec5ff;
-		box-shadow: 0 0 10px 3px #3b82f6;
-		opacity: 0.35;
-		animation: hostIdle 5s ease-in-out infinite;
-	}
-	.portal.talking .host-lens {
-		animation: lens 0.18s ease-in-out infinite alternate, hostIdle 5s ease-in-out infinite;
-	}
-	@keyframes lens {
-		from {
-			opacity: 0.4;
-		}
-		to {
-			opacity: 1;
-		}
-	}
-	.host-scan {
-		position: absolute;
-		left: 15%;
-		right: 15%;
-		height: 2px;
-		top: 0;
-		background: linear-gradient(90deg, transparent, #8ec5ffcc, transparent);
-		box-shadow: 0 0 14px #3b82f6;
-		animation: hostScan 4.5s ease-in-out infinite;
-		pointer-events: none;
-	}
-	@keyframes hostScan {
-		0% {
-			top: 0;
-			opacity: 0;
-		}
-		10% {
-			opacity: 1;
-		}
-		80% {
-			opacity: 1;
-		}
-		100% {
-			top: 88%;
-			opacity: 0;
 		}
 	}
 	.host-beam {
@@ -3121,7 +3082,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		inset: 8px 30px;
 		border-style: dashed;
 		opacity: 0.6;
-		animation: spin 6s linear infinite;
+		animation: beamPulse 2s ease-in-out infinite;
 	}
 	.host-base i:nth-child(3) {
 		inset: -8px -20px;
@@ -3142,14 +3103,10 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 
 	/* humeurs */
 	.portal[data-mood='happy'] .host-fig {
-		filter: drop-shadow(0 0 2px #b9f5cf) drop-shadow(0 0 26px #34c76f88) saturate(0.95);
+		filter: brightness(1.2) contrast(1.05) drop-shadow(0 0 1.5px #b9f5cf) drop-shadow(0 0 20px #34c76f77);
 	}
 	.portal[data-mood='alert'] .host-fig {
-		filter: drop-shadow(0 0 2px #ffb3a8) drop-shadow(0 0 26px #ff8a7aaa) saturate(0.9);
-	}
-	.portal[data-mood='alert'] .host-lens {
-		background: #ff8a7a;
-		box-shadow: 0 0 10px 3px #ff5a4a;
+		filter: brightness(1.15) contrast(1.05) drop-shadow(0 0 1.5px #ffb3a8) drop-shadow(0 0 20px #ff8a7a99);
 	}
 	.portal[data-mood='alert'] .bubble,
 	.portal[data-mood='alert'] .comm {
@@ -3157,9 +3114,6 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	}
 	.portal[data-mood='happy'] .bubble {
 		border-color: #34c76f66;
-	}
-	.portal[data-mood='think'] .host-lens {
-		animation: lens 0.5s ease-in-out infinite alternate, hostIdle 5s ease-in-out infinite;
 	}
 
 	/* portrait dans la console (écrans moyens et mobile) */
@@ -3209,7 +3163,6 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		.airship,
 		.star-shoot,
 		.run,
-		.host-scan,
 		.host-beam {
 			display: none !important;
 		}
