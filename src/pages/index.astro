@@ -1,11 +1,410 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// Les lieux du village : à adapter à ce que vous avez construit sur Higgsfield.
+const places = [
+	{
+		name: 'La Place',
+		tag: 'Rencontres',
+		text: "Le cœur du village. On s'y croise, on se présente, on trouve un associé, un client ou juste quelqu'un qui a déjà eu ton problème.",
+	},
+	{
+		name: "L'Atelier",
+		tag: 'Co-working',
+		text: 'Des espaces pour bosser à plusieurs sur ton projet, en direct, sans quitter le village.',
+	},
+	{
+		name: 'La Halle',
+		tag: 'Événements',
+		text: 'Pitchs, démos, retours d’expérience. Tu montes sur scène ou tu écoutes depuis les gradins.',
+	},
+	{
+		name: 'La Bibliothèque',
+		tag: 'Ressources',
+		text: 'Modèles, outils, contacts utiles : ce que les habitants ont appris, rangé pour les suivants.',
+	},
+];
+
+const steps = [
+	{
+		n: '01',
+		title: 'Tu demandes ton accès',
+		text: 'Un formulaire court : qui tu es, ton projet, ton pseudo Higgsfield. Deux minutes.',
+	},
+	{
+		n: '02',
+		title: 'On valide ton compte',
+		text: 'On lit chaque demande et on active ton compte nous-mêmes, directement sur Higgsfield.',
+	},
+	{
+		n: '03',
+		title: 'Tu entres dans le village',
+		text: 'Tu reçois un mail de confirmation, tu te connectes et tu explores. Tes retours façonnent la suite.',
+	},
+];
+
+const faq = [
+	{
+		q: "C'est vraiment gratuit ?",
+		a: "Oui. Pas d'abonnement, pas de carte bancaire, pas d'essai qui devient payant. On demande juste tes retours pendant la bêta.",
+	},
+	{
+		q: 'Pourquoi une validation si c’est gratuit ?',
+		a: "Parce que le village marche s'il est habité par de vrais entrepreneurs. On veut savoir qui entre, garder une communauté saine et pouvoir te contacter pour tes retours.",
+	},
+	{
+		q: 'Il faut un compte Higgsfield ?',
+		a: "Oui, le monde tourne sur Higgsfield. Crée un compte gratuit si tu n'en as pas, puis indique ton pseudo dans le formulaire : c'est lui qu'on active.",
+	},
+	{
+		q: 'Combien de temps pour être validé ?',
+		a: 'On traite les demandes à la main, en général sous quelques jours. Tu reçois un mail dès que ton accès est ouvert.',
+	},
+	{
+		q: 'Je ne suis pas encore lancé, je peux venir ?',
+		a: "Oui. Idée, projet en cours, boîte qui tourne : le village est fait pour tous les stades. Dis-nous où tu en es dans le formulaire.",
+	},
+];
 ---
 
 <Layout>
-	<Welcome />
+	<section class="hero">
+		<div class="sky" aria-hidden="true">
+			{Array.from({ length: 40 }).map((_, i) => (
+				<span
+					class="star"
+					style={`left:${(i * 37) % 100}%;top:${(i * 53) % 55}%;animation-delay:${(i % 7) * 0.6}s`}
+				/>
+			))}
+		</div>
+		<div class="wrap hero-inner">
+			<p class="eyebrow">Bêta privée · 100 % gratuit</p>
+			<h1>
+				Le village virtuel<br />où les entrepreneurs<br /><span class="glow">s'entraident.</span>
+			</h1>
+			<p class="lede">
+				VillageTech est un monde en ligne, construit sur Higgsfield, où tu croises d'autres
+				fondateurs, travailles à plusieurs et trouves de l'aide sans chercher pendant des
+				semaines. On ouvre les portes à un premier groupe de testeurs.
+			</p>
+			<div class="cta-row">
+				<a href="/acces" class="btn">Demander mon accès bêta →</a>
+				<a href="#village" class="btn-ghost">Visiter le village</a>
+			</div>
+		</div>
+		<svg class="skyline" viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+			<g fill="#141b24" stroke="#2a3644" stroke-width="1.5">
+				<path d="M0 220V150l60-40 60 40v70z" />
+				<path d="M120 220V120l80-60 80 60v100z" />
+				<path d="M280 220V160h90v60z" />
+				<path d="M370 220V90l50-50 50 50v130z" />
+				<path d="M470 220V140l70-50 70 50v80z" />
+				<path d="M610 220V60h30v-30h20v30h30v160z" />
+				<path d="M690 220V130l90-60 90 60v90z" />
+				<path d="M870 220V150h70v70z" />
+				<path d="M940 220V110l60-45 60 45v110z" />
+				<path d="M1060 220V140l70-45 70 45v80z" />
+			</g>
+			<g class="windows" fill="#f4a93b">
+				<rect x="45" y="165" width="12" height="16" rx="2" />
+				<rect x="160" y="135" width="14" height="18" rx="2" />
+				<rect x="215" y="135" width="14" height="18" style="animation-delay:1.2s" rx="2" />
+				<rect x="310" y="178" width="12" height="14" rx="2" />
+				<rect x="410" y="110" width="16" height="22" style="animation-delay:2s" rx="2" />
+				<rect x="525" y="160" width="14" height="18" rx="2" />
+				<rect x="640" y="90" width="12" height="16" style="animation-delay:.6s" rx="2" />
+				<rect x="640" y="130" width="12" height="16" rx="2" />
+				<rect x="740" y="150" width="16" height="20" style="animation-delay:1.6s" rx="2" />
+				<rect x="800" y="150" width="16" height="20" rx="2" />
+				<rect x="895" y="170" width="12" height="14" rx="2" />
+				<rect x="990" y="125" width="14" height="18" style="animation-delay:2.4s" rx="2" />
+				<rect x="1120" y="160" width="14" height="18" rx="2" />
+			</g>
+		</svg>
+	</section>
+
+	<section id="village" class="section wrap">
+		<p class="eyebrow">Le village</p>
+		<h2>Un lieu, pas un énième groupe WhatsApp.</h2>
+		<p class="section-lede">
+			Chaque quartier a un usage. Tu sais où aller selon ce dont tu as besoin, et tu y croises
+			les bonnes personnes.
+		</p>
+		<div class="places">
+			{places.map((p, i) => (
+				<article class="place">
+					<span class="place-num">0{i + 1}</span>
+					<span class="place-tag">{p.tag}</span>
+					<h3>{p.name}</h3>
+					<p>{p.text}</p>
+				</article>
+			))}
+		</div>
+	</section>
+
+	<section id="beta" class="section wrap">
+		<p class="eyebrow">Comment entrer</p>
+		<h2>Gratuit, mais sur invitation.</h2>
+		<p class="section-lede">
+			On veut connaître chaque personne qui entre pendant la bêta. Tu fais ta demande, on
+			active ton compte à la main.
+		</p>
+		<ol class="steps">
+			{steps.map((s) => (
+				<li class="step">
+					<span class="step-n">{s.n}</span>
+					<h3>{s.title}</h3>
+					<p>{s.text}</p>
+				</li>
+			))}
+		</ol>
+	</section>
+
+	<section id="faq" class="section wrap faq-wrap">
+		<div>
+			<p class="eyebrow">Questions</p>
+			<h2>Avant de franchir la porte.</h2>
+		</div>
+		<div class="faq">
+			{faq.map((f) => (
+				<details>
+					<summary>{f.q}</summary>
+					<p>{f.a}</p>
+				</details>
+			))}
+		</div>
+	</section>
+
+	<section class="section wrap">
+		<div class="final">
+			<h2>Les lanternes sont allumées.</h2>
+			<p>Les places de la bêta sont limitées. Fais ta demande, on s'occupe du reste.</p>
+			<a href="/acces" class="btn">Ouvrir le portail d'accès →</a>
+		</div>
+	</section>
 </Layout>
+
+<style>
+	.hero {
+		position: relative;
+		min-height: calc(100svh - 64px);
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		background: radial-gradient(ellipse 80% 60% at 70% 100%, #f4a93b18, transparent 60%),
+			linear-gradient(180deg, #0a0e14 0%, var(--night) 100%);
+		overflow: hidden;
+		padding-top: 60px;
+	}
+	.hero-inner {
+		position: relative;
+		z-index: 2;
+		width: 100%;
+		padding-bottom: 200px;
+	}
+	.hero h1 {
+		font-size: clamp(2.6rem, 7vw, 5.4rem);
+		font-weight: 800;
+		margin-top: 12px;
+	}
+	.glow {
+		color: var(--lantern);
+		text-shadow: 0 0 40px #f4a93b55;
+	}
+	.lede {
+		max-width: 560px;
+		color: var(--ink-dim);
+		font-size: 1.12rem;
+	}
+	.cta-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		margin-top: 28px;
+	}
+	.sky {
+		position: absolute;
+		inset: 0;
+	}
+	.star {
+		position: absolute;
+		width: 2px;
+		height: 2px;
+		border-radius: 50%;
+		background: var(--ink);
+		opacity: 0.5;
+		animation: twinkle 4s ease-in-out infinite;
+	}
+	.skyline {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		width: 100%;
+		height: 220px;
+		z-index: 1;
+	}
+	.windows rect {
+		animation: flicker 5s ease-in-out infinite;
+		filter: drop-shadow(0 0 6px #f4a93b);
+	}
+	@keyframes twinkle {
+		50% {
+			opacity: 0.1;
+		}
+	}
+	@keyframes flicker {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		45% {
+			opacity: 0.75;
+		}
+		50% {
+			opacity: 0.35;
+		}
+		55% {
+			opacity: 0.9;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.star,
+		.windows rect {
+			animation: none;
+		}
+	}
+
+	.section {
+		padding-top: 110px;
+	}
+	.section h2 {
+		font-size: clamp(2rem, 4.5vw, 3.2rem);
+		max-width: 720px;
+	}
+	.section-lede {
+		color: var(--ink-dim);
+		max-width: 600px;
+		font-size: 1.08rem;
+	}
+
+	.places {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		gap: 16px;
+		margin-top: 40px;
+	}
+	.place {
+		position: relative;
+		background: var(--night-2);
+		border: 1px solid var(--line);
+		border-radius: var(--radius);
+		padding: 26px 22px;
+		transition: border-color 0.2s, transform 0.2s;
+	}
+	.place:hover {
+		border-color: var(--lantern);
+		transform: translateY(-3px);
+	}
+	.place-num {
+		position: absolute;
+		top: 18px;
+		right: 20px;
+		font-family: var(--font-mono);
+		color: var(--line);
+		font-size: 1.6rem;
+		font-weight: 600;
+	}
+	.place-tag {
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: var(--moss);
+	}
+	.place h3 {
+		font-size: 1.5rem;
+		margin-top: 10px;
+	}
+	.place p {
+		color: var(--ink-dim);
+		margin: 0;
+		font-size: 0.97rem;
+	}
+
+	.steps {
+		list-style: none;
+		padding: 0;
+		margin: 40px 0 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+		gap: 0;
+		border-top: 1px solid var(--line);
+	}
+	.step {
+		padding: 28px 24px 8px 0;
+	}
+	.step-n {
+		display: inline-block;
+		font-family: var(--font-mono);
+		color: var(--lantern);
+		margin-bottom: 14px;
+	}
+	.step h3 {
+		font-size: 1.35rem;
+	}
+	.step p {
+		color: var(--ink-dim);
+		margin: 0;
+	}
+
+	.faq-wrap {
+		display: grid;
+		grid-template-columns: 1fr 1.4fr;
+		gap: 40px;
+	}
+	@media (max-width: 820px) {
+		.faq-wrap {
+			grid-template-columns: 1fr;
+		}
+	}
+	.faq details {
+		border-bottom: 1px solid var(--line);
+		padding: 18px 0;
+	}
+	.faq summary {
+		cursor: pointer;
+		font-weight: 600;
+		font-size: 1.05rem;
+		list-style: none;
+		display: flex;
+		justify-content: space-between;
+		gap: 16px;
+	}
+	.faq summary::after {
+		content: '+';
+		color: var(--lantern);
+		font-family: var(--font-mono);
+	}
+	.faq details[open] summary::after {
+		content: '–';
+	}
+	.faq p {
+		color: var(--ink-dim);
+		margin: 10px 0 0;
+	}
+
+	.final {
+		text-align: center;
+		padding: 64px 24px;
+		border-radius: 24px;
+		border: 1px solid var(--line);
+		background: radial-gradient(ellipse at 50% 120%, #f4a93b33, transparent 60%), var(--night-2);
+	}
+	.final h2 {
+		margin: 0 auto 0.4em;
+	}
+	.final p {
+		color: var(--ink-dim);
+		margin: 0 0 28px;
+	}
+</style>

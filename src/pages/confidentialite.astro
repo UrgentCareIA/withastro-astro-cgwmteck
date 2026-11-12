@@ -1,0 +1,57 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Confidentialité — VillageTech">
+	<article class="wrap legal">
+		<p class="eyebrow">Confidentialité</p>
+		<h1>Ce qu'on fait de tes infos.</h1>
+
+		<h2>Ce qu'on collecte</h2>
+		<p>
+			Quand tu demandes un accès à la bêta : prénom, nom, email, pseudo Higgsfield, et ce que tu
+			choisis de nous dire sur ton projet.
+		</p>
+
+		<h2>Pourquoi</h2>
+		<p>
+			Uniquement pour décider de ton accès à la bêta, activer ton compte sur Higgsfield et te
+			contacter au sujet de VillageTech (confirmation d'accès, demandes de retours). Base légale :
+			ton consentement, donné en cochant la case du formulaire.
+		</p>
+
+		<h2>Qui y a accès</h2>
+		<p>
+			Seulement l'équipe VillageTech. Les données sont hébergées chez notre prestataire de base de
+			données (Supabase). On ne vend rien et on ne partage rien à des fins publicitaires.
+		</p>
+
+		<h2>Combien de temps</h2>
+		<p>Pendant la durée de la bêta, puis au maximum 12 mois après ton dernier contact avec nous.</p>
+
+		<h2>Tes droits</h2>
+		<p>
+			Tu peux demander à consulter, corriger ou supprimer tes données, ou retirer ton consentement,
+			à tout moment en nous écrivant à <!-- TODO: remplacer par votre adresse de contact -->
+			<strong>contact@villagetech.fr</strong>. Tu peux aussi saisir la CNIL (cnil.fr).
+		</p>
+	</article>
+</Layout>
+
+<style>
+	.legal {
+		max-width: 720px;
+		padding-top: 72px;
+	}
+	.legal h1 {
+		font-size: clamp(2rem, 5vw, 3rem);
+		margin-top: 10px;
+	}
+	.legal h2 {
+		font-size: 1.3rem;
+		margin-top: 2em;
+	}
+	.legal p {
+		color: var(--ink-dim);
+	}
+</style>

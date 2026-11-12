@@ -1,0 +1,373 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfield.ai';
+---
+
+<Layout title="Portail d'accès — VillageTech" description="Demande ton accès à la bêta gratuite de VillageTech.">
+	<section class="portal wrap">
+		<aside class="side">
+			<p class="eyebrow">Portail d'accès</p>
+			<h1>Demande ton entrée au village.</h1>
+			<p class="dim">
+				La bêta est gratuite. On lit chaque demande et on active ton compte nous-mêmes sur
+				Higgsfield. Tu reçois un mail dès que la porte est ouverte.
+			</p>
+
+			<ul class="checks">
+				<li>Aucune carte bancaire</li>
+				<li>Validation manuelle par l'équipe</li>
+				<li>Tes infos servent uniquement à la bêta</li>
+			</ul>
+
+			<div class="already">
+				<p><strong>Déjà validé ?</strong></p>
+				<a class="btn-ghost" href={higgsfieldUrl} target="_blank" rel="noopener">
+					Entrer dans le village ↗
+				</a>
+			</div>
+		</aside>
+
+		<div class="card">
+			<form id="beta-form" novalidate>
+				<div class="row">
+					<label>
+						<span>Prénom *</span>
+						<input name="first_name" required autocomplete="given-name" maxlength="80" />
+					</label>
+					<label>
+						<span>Nom *</span>
+						<input name="last_name" required autocomplete="family-name" maxlength="80" />
+					</label>
+				</div>
+
+				<label>
+					<span>Email *</span>
+					<input name="email" type="email" required autocomplete="email" maxlength="200" />
+					<small>C'est là qu'on t'écrit quand ton compte est activé.</small>
+				</label>
+
+				<label>
+					<span>Pseudo Higgsfield *</span>
+					<input name="higgsfield_username" required maxlength="80" placeholder="@ton-pseudo" />
+					<small>
+						Pas encore de compte ?
+						<a href="https://higgsfield.ai" target="_blank" rel="noopener">Crée-le ici</a>, c'est gratuit.
+					</small>
+				</label>
+
+				<div class="row">
+					<label>
+						<span>Ton projet / entreprise</span>
+						<input name="company" maxlength="120" autocomplete="organization" />
+					</label>
+					<label>
+						<span>Où en es-tu ? *</span>
+						<select name="stage" required>
+							<option value="">Choisir…</option>
+							<option value="idee">J'ai une idée</option>
+							<option value="lancement">Je lance mon projet</option>
+							<option value="activite">Mon activité tourne</option>
+							<option value="croissance">Je recrute / je lève</option>
+							<option value="autre">Autre (freelance, mentor…)</option>
+						</select>
+					</label>
+				</div>
+
+				<label>
+					<span>Ton secteur</span>
+					<input name="sector" maxlength="80" placeholder="Tech, commerce, santé, artisanat…" />
+				</label>
+
+				<label>
+					<span>Qu'est-ce que tu viens chercher dans le village ? *</span>
+					<textarea name="motivation" required rows="4" maxlength="1000"></textarea>
+				</label>
+
+				<label>
+					<span>Comment tu nous as connus ?</span>
+					<input name="referral" maxlength="120" />
+				</label>
+
+				<!-- piège à robots : invisible pour les humains -->
+				<label class="hp" aria-hidden="true">
+					<span>Ne pas remplir</span>
+					<input name="website" tabindex="-1" autocomplete="off" />
+				</label>
+
+				<label class="consent">
+					<input type="checkbox" name="consent" required />
+					<span>
+						J'accepte que VillageTech utilise ces informations pour gérer mon accès à la bêta et
+						me contacter à ce sujet. <a href="/confidentialite">En savoir plus</a>
+					</span>
+				</label>
+
+				<p class="error" id="form-error" role="alert" hidden></p>
+
+				<button class="btn submit" type="submit">Envoyer ma demande</button>
+			</form>
+
+			<div class="success" id="form-success" hidden tabindex="-1">
+				<div class="lantern" aria-hidden="true"></div>
+				<h2>Demande reçue.</h2>
+				<p>
+					On vérifie ton profil et on active ton compte sur Higgsfield. Tu recevras un mail à
+					<strong id="success-email"></strong> dès que c'est fait.
+				</p>
+				<a href="/" class="btn-ghost">Retour à l'accueil</a>
+			</div>
+		</div>
+	</section>
+</Layout>
+
+<script>
+	const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
+	const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+
+	const form = document.getElementById('beta-form') as HTMLFormElement;
+	const errorEl = document.getElementById('form-error') as HTMLParagraphElement;
+	const successEl = document.getElementById('form-success') as HTMLDivElement;
+	const submitBtn = form.querySelector('button[type=submit]') as HTMLButtonElement;
+
+	function showError(msg: string) {
+		errorEl.textContent = msg;
+		errorEl.hidden = false;
+	}
+
+	form.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		errorEl.hidden = true;
+
+		if (!form.checkValidity()) {
+			const firstInvalid = form.querySelector(':invalid') as HTMLElement | null;
+			firstInvalid?.focus();
+			showError('Il manque des champs obligatoires (*), ou l’email n’est pas valide.');
+			return;
+		}
+
+		const data = new FormData(form);
+		if (data.get('website')) return; // robot
+
+		const str = (k: string) => String(data.get(k) ?? '').trim() || null;
+		const payload = {
+			first_name: str('first_name'),
+			last_name: str('last_name'),
+			email: str('email')?.toLowerCase(),
+			higgsfield_username: str('higgsfield_username')?.replace(/^@/, ''),
+			company: str('company'),
+			stage: str('stage'),
+			sector: str('sector'),
+			motivation: str('motivation'),
+			referral: str('referral'),
+		};
+
+		if (!SUPABASE_URL || !SUPABASE_KEY) {
+			showError('Le formulaire n’est pas encore branché (configuration Supabase manquante).');
+			console.warn('PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_ANON_KEY manquants', payload);
+			return;
+		}
+
+		submitBtn.disabled = true;
+		submitBtn.textContent = 'Envoi…';
+		try {
+			const res = await fetch(`${SUPABASE_URL}/rest/v1/beta_requests`, {
+				method: 'POST',
+				headers: {
+					apikey: SUPABASE_KEY,
+					Authorization: `Bearer ${SUPABASE_KEY}`,
+					'Content-Type': 'application/json',
+					Prefer: 'return=minimal',
+				},
+				body: JSON.stringify(payload),
+			});
+
+			if (res.status === 409) {
+				showError('Cette adresse a déjà fait une demande. On revient vers toi très vite !');
+				return;
+			}
+			if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+			(document.getElementById('success-email') as HTMLElement).textContent = payload.email ?? '';
+			form.hidden = true;
+			successEl.hidden = false;
+			successEl.focus();
+		} catch (err) {
+			console.error(err);
+			showError('Oups, l’envoi a échoué. Vérifie ta connexion et réessaie.');
+		} finally {
+			submitBtn.disabled = false;
+			submitBtn.textContent = 'Envoyer ma demande';
+		}
+	});
+</script>
+
+<style>
+	.portal {
+		display: grid;
+		grid-template-columns: 1fr 1.25fr;
+		gap: 56px;
+		padding-top: 72px;
+		align-items: start;
+	}
+	@media (max-width: 880px) {
+		.portal {
+			grid-template-columns: 1fr;
+			gap: 32px;
+			padding-top: 40px;
+		}
+	}
+	.side {
+		position: sticky;
+		top: 100px;
+	}
+	@media (max-width: 880px) {
+		.side {
+			position: static;
+		}
+	}
+	.side h1 {
+		font-size: clamp(2.2rem, 5vw, 3.4rem);
+		font-weight: 800;
+		margin-top: 10px;
+	}
+	.dim {
+		color: var(--ink-dim);
+	}
+	.checks {
+		list-style: none;
+		padding: 0;
+		margin: 24px 0;
+	}
+	.checks li {
+		padding: 6px 0 6px 28px;
+		position: relative;
+	}
+	.checks li::before {
+		content: '';
+		position: absolute;
+		left: 4px;
+		top: 50%;
+		width: 9px;
+		height: 9px;
+		margin-top: -4px;
+		border-radius: 50%;
+		background: var(--lantern);
+		box-shadow: 0 0 10px var(--lantern);
+	}
+	.already {
+		margin-top: 32px;
+		padding-top: 24px;
+		border-top: 1px solid var(--line);
+	}
+	.already p {
+		margin: 0 0 10px;
+	}
+
+	.card {
+		background: var(--night-2);
+		border: 1px solid var(--line);
+		border-radius: 20px;
+		padding: 32px;
+	}
+	@media (max-width: 520px) {
+		.card {
+			padding: 22px 18px;
+		}
+	}
+	form {
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+	}
+	.row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 16px;
+	}
+	@media (max-width: 520px) {
+		.row {
+			grid-template-columns: 1fr;
+		}
+	}
+	label {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		font-size: 0.92rem;
+		font-weight: 500;
+	}
+	input,
+	select,
+	textarea {
+		font: inherit;
+		font-weight: 400;
+		font-size: 1rem;
+		color: var(--ink);
+		background: var(--night);
+		border: 1px solid var(--line);
+		border-radius: 10px;
+		padding: 12px 14px;
+		width: 100%;
+	}
+	textarea {
+		resize: vertical;
+	}
+	input:focus,
+	select:focus,
+	textarea:focus {
+		outline: none;
+		border-color: var(--lantern);
+		box-shadow: 0 0 0 3px var(--lantern-soft);
+	}
+	small {
+		color: var(--ink-dim);
+		font-weight: 400;
+		font-size: 0.82rem;
+	}
+	.hp {
+		position: absolute;
+		left: -9999px;
+	}
+	.consent {
+		flex-direction: row;
+		align-items: flex-start;
+		gap: 12px;
+		font-weight: 400;
+		color: var(--ink-dim);
+		font-size: 0.88rem;
+	}
+	.consent input {
+		width: 18px;
+		height: 18px;
+		margin-top: 3px;
+		flex: none;
+		accent-color: var(--lantern);
+	}
+	.error {
+		margin: 0;
+		color: var(--danger);
+		font-size: 0.92rem;
+	}
+	.submit {
+		align-self: flex-start;
+	}
+
+	.success {
+		text-align: center;
+		padding: 24px 8px;
+		outline: none;
+	}
+	.success p {
+		color: var(--ink-dim);
+		margin: 0 0 24px;
+	}
+	.lantern {
+		width: 22px;
+		height: 22px;
+		margin: 0 auto 22px;
+		border-radius: 50%;
+		background: var(--lantern);
+		box-shadow: 0 0 30px 10px #f4a93b66;
+	}
+</style>
