@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face { font-family: 'Jakarta'; font-weight: 800; src: url(a/plus-jakarta-sans-latin-800-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Grotesk'; font-weight: 600; src: url(a/space-grotesk-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Mono'; font-weight: 600; src: url(a/jetbrains-mono-latin-600-normal.woff2) format('woff2'); }
+html, body { margin: 0; background: transparent; color: #fff; width: 1080px; }
+.brand { position: absolute; left: 64px; top: 56px; display: flex; align-items: center; gap: 18px; font: 600 25px 'Grotesk'; letter-spacing: 0.32em; text-transform: uppercase; text-shadow: 0 2px 12px #1e2278aa; }
+.brand img { width: 56px; height: 56px; border-radius: 14px; }
+.count { position: absolute; right: 64px; top: var(--cy, 66px); font: 600 34px 'Mono'; letter-spacing: 0.12em; text-shadow: 0 2px 12px #1e2278aa; }
+.pill { position: absolute; left: 50%; translate: -50% 0; display: inline-flex; align-items: center; gap: 14px; padding: 18px 36px; border-radius: 99px; border: 2px solid #ffffff88; background: #ffffff2e; backdrop-filter: blur(8px); font: 600 32px 'Grotesk'; white-space: nowrap; }
+.cta { position: absolute; left: 50%; translate: -50% 0; display: inline-flex; align-items: center; gap: 18px; padding: 30px 60px; border-radius: 99px; font: 800 44px 'Jakarta'; color: #fff; background: linear-gradient(90deg, #4f7cff, #7b5cff 60%, #ff5fa2); border: 2px solid #ffffff77; box-shadow: 0 0 0 14px #ffffff22, 0 10px 80px 0 #ff5fa2; white-space: nowrap; }
+.shade { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; background: linear-gradient(0deg, #2a2790dd, transparent); }
+</style></head><body><div id="root"></div>
+<script>
+const q = new URLSearchParams(location.search);
+const h = +q.get('h') || 1350;
+document.body.style.height = h + 'px';
+let html = '';
+if (q.get('brand')) html += `<div class="brand"><img src="a/logo-512.png">Le Village Tech</div>`;
+if (q.get('n')) html += `<p class="count">${q.get('n')} / 05</p>`;
+if (q.get('shade')) html += `<div class="shade"></div>`;
+if (q.get('pill')) html += `<span class="pill" style="top:${q.get('py')}px">${q.get('pill')}</span>`;
+if (q.get('cta')) html += `<span class="cta" style="top:${q.get('cy')}px">${q.get('cta')}</span>`;
+document.getElementById('root').innerHTML = html;
+window.ready = document.fonts.ready.then(() => Promise.all([...document.images].map(i => i.decode().catch(() => {}))));
+</script></body></html>
