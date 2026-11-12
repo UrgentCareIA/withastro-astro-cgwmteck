@@ -65,6 +65,21 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		</header>
 
 		<main class="stage">
+			<!-- ====== HÔTESSE (grand écran) ====== -->
+			<aside class="host-col" aria-hidden="true">
+				<div class="bubble" id="bubble">
+					<p class="bubble-name mono">Hôtesse d'accueil <i class="live"></i></p>
+					<p class="bubble-text"><span class="say" data-say></span><span class="caret"></span></p>
+				</div>
+				<div class="host" id="host">
+					<div class="host-beam"></div>
+					<div class="host-fig"><img class="host-img" src="/images/hotesse.webp" alt="" width="214" height="512" /></div>
+					<span class="host-lens"></span>
+					<span class="host-scan"></span>
+					<div class="host-base"><i></i><i></i><i></i></div>
+				</div>
+			</aside>
+
 			<!-- ====== PASS ====== -->
 			<section class="pass-col" aria-label="Aperçu de ton Village Pass">
 				<p class="mono label">// Ton Village Pass</p>
@@ -125,7 +140,14 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 				<span class="run run-b" aria-hidden="true"></span>
 				<span class="wipe" aria-hidden="true"></span>
 
-				<div class="boot mono" id="boot" aria-hidden="true"></div>
+				<div class="comm" aria-hidden="true">
+					<div class="comm-face"><img src="/images/hotesse-face.webp" alt="" width="64" height="64" /></div>
+					<div class="comm-body">
+						<p class="comm-name mono">Hôtesse d'accueil <i class="live"></i></p>
+						<p class="comm-text"><span class="say" data-say></span><span class="caret"></span></p>
+					</div>
+				</div>
+				<p class="sr" id="say-live" aria-live="polite"></p>
 
 				<div class="tabs" role="tablist">
 					<button role="tab" id="tab-req" aria-selected="true" aria-controls="panel-req">Demander l'accès</button>
@@ -306,26 +328,6 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	const tick = () => (clock.textContent = new Date().toLocaleTimeString('fr-FR'));
 	tick();
 	setInterval(tick, 1000);
-
-	/* ---------- séquence de démarrage ---------- */
-	(async () => {
-		const boot = $('boot');
-		const lines = ['> connexion au Campus…', '> portail bêta ouvert', '> identifie-toi'];
-		if (reduced) {
-			boot.textContent = lines.join('   ');
-			return;
-		}
-		for (const l of lines) {
-			const p = document.createElement('p');
-			boot.appendChild(p);
-			for (const ch of l) {
-				p.textContent += ch;
-				await sleep(18);
-			}
-			p.insertAdjacentHTML('beforeend', ' <b>OK</b>');
-			await sleep(120);
-		}
-	})();
 
 	/* ---------- pass : inclinaison 3D ---------- */
 	const pass = $('pass');
@@ -581,6 +583,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 			]);
 			if (!res.ok) throw new Error(`HTTP ${res.status}`);
 			const status: string = await res.json();
+			emit('vt:result', status);
 			const views: Record<string, [string, string, string]> = {
 				valide: ['ok', 'Accès ouvert', 'Ton compte est activé sur Higgsfield. Bienvenue au Village !'],
 				en_attente: ['wait', 'En attente de validation', 'On a bien ta demande, on la traite à la main. Tu recevras un mail.'],
@@ -675,9 +678,12 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		warp: () => { tone(200, 0.6, 'sawtooth', 0.03, 0, 3000); tone(60, 0.9, 'sine', 0.09, 0, 30); },
 	};
 	syncSoundBtn();
+	portal.dataset.sound = soundOn ? 'on' : 'off';
 	soundBtn.addEventListener('click', () => {
 		soundOn = !soundOn;
 		store.setLocal('vt-sound', soundOn ? '1' : '0');
+		portal.dataset.sound = soundOn ? 'on' : 'off';
+		if (!soundOn) speechSynthesis?.cancel();
 		syncSoundBtn();
 		if (soundOn) { ensureAudio(); sfx.tab(); }
 	});
@@ -780,6 +786,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	/* ---------------- INTRO : logo + saut en hyperespace ---------------- */
 	const intro = byId('intro');
 	const reveal = () => {
+		document.dispatchEvent(new CustomEvent('vt:ready'));
 		portal.classList.remove('pre');
 		portal.classList.add('ready');
 	};
@@ -945,6 +952,175 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		const [x, y] = centerOf(a);
 		burst(x, y, 60, ['#34c76f', '#ffffff', '#8ec5ff'], 8);
 		restart(byId('flash'), 'pulse');
+	});
+</script>
+
+<script>
+	/* =========================================================
+	   L'HÔTESSE : elle accueille, guide et réagit
+	   ========================================================= */
+	const reducedHost = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const portalEl = document.querySelector('.portal') as HTMLElement;
+	const hostEl = document.getElementById('host');
+	const says = Array.from(document.querySelectorAll<HTMLElement>('[data-say]'));
+	const liveEl = document.getElementById('say-live') as HTMLElement;
+	const formEl = document.getElementById('beta-form') as HTMLFormElement;
+	const firstName = () => String(new FormData(formEl).get('first_name') ?? '').trim().split(/\s+/)[0] ?? '';
+
+	/* --- voix (seulement si le son est activé) --- */
+	let voice: SpeechSynthesisVoice | null = null;
+	const pickVoice = () => {
+		const vs = window.speechSynthesis?.getVoices() ?? [];
+		const fr = vs.filter((v) => v.lang?.toLowerCase().startsWith('fr'));
+		voice = fr.find((v) => /amelie|audrey|aurelie|marie|julie|denise|google fran|female|femme/i.test(v.name)) ?? fr[0] ?? null;
+	};
+	if ('speechSynthesis' in window) {
+		pickVoice();
+		speechSynthesis.addEventListener?.('voiceschanged', pickVoice);
+	}
+	const speak = (text: string) => {
+		if (portalEl.dataset.sound !== 'on' || !('speechSynthesis' in window)) return;
+		speechSynthesis.cancel();
+		const u = new SpeechSynthesisUtterance(text.replace(/…/g, '.'));
+		u.lang = 'fr-FR';
+		if (voice) u.voice = voice;
+		u.rate = 1.04;
+		u.pitch = 1.15;
+		u.volume = 0.9;
+		speechSynthesis.speak(u);
+	};
+
+	/* --- dire une phrase : points de suspension, puis machine à écrire --- */
+	let token = 0;
+	let lastLine = '';
+	const say = async (text: string, mood: 'neutral' | 'happy' | 'alert' | 'think' = 'neutral', force = false) => {
+		if (!force && text === lastLine) return;
+		lastLine = text;
+		const my = ++token;
+		liveEl.textContent = text;
+		portalEl.dataset.mood = mood;
+		hostEl?.classList.remove('nod');
+		void hostEl?.offsetWidth;
+		hostEl?.classList.add('nod');
+		speak(text);
+		if (reducedHost) {
+			says.forEach((el) => (el.textContent = text));
+			return;
+		}
+		portalEl.classList.add('talking');
+		says.forEach((el) => { el.textContent = ''; el.classList.add('dots'); });
+		await new Promise((r) => setTimeout(r, 380));
+		if (my !== token) return;
+		says.forEach((el) => el.classList.remove('dots'));
+		for (let i = 1; i <= text.length; i++) {
+			if (my !== token) return;
+			const part = text.slice(0, i);
+			says.forEach((el) => (el.textContent = part));
+			await new Promise((r) => setTimeout(r, /[.,!?…:]/.test(text[i - 1]) ? 120 : 20));
+		}
+		if (my === token) portalEl.classList.remove('talking');
+	};
+
+	/* --- relance si on reste bloqué --- */
+	let idle: ReturnType<typeof setTimeout> | undefined;
+	const hints = [
+		'Besoin d’aide ? Le pseudo Higgsfield, c’est ton nom de compte sur higgsfield.ai.',
+		'Prends ton temps. Rien n’est envoyé avant la dernière étape.',
+		'Petite info : la bêta est gratuite, et c’est l’équipe qui valide chaque compte à la main.',
+	];
+	let hintI = 0;
+	const armIdle = () => {
+		clearTimeout(idle);
+		idle = setTimeout(() => {
+			if (document.getElementById('done')?.hidden === false) return;
+			say(hints[hintI++ % hints.length], 'think');
+			armIdle();
+		}, 16000);
+	};
+	['input', 'pointerdown', 'keydown'].forEach((ev) => addEventListener(ev, armIdle, { passive: true }));
+
+	/* --- répliques --- */
+	const STAGE_LINES: Record<string, string> = {
+		idee: 'Une idée, c’est le début de tout. L’Académie va t’aider à la transformer en projet.',
+		lancement: 'Le lancement, l’étape la plus excitante ! Tu trouveras des conseils à l’Académie et des associés sur V Pro.',
+		activite: 'Ton activité tourne, bravo ! Le Village va t’aider à trouver de nouveaux clients.',
+		croissance: 'Tu grandis ! Sur V Pro, tu pourras recruter et rencontrer des financeurs.',
+		autre: 'Freelance, mentor… tout le monde a sa place au Village.',
+	};
+	const FOCUS_LINES: Record<string, string> = {
+		'f-email': 'Ton email, pour que l’équipe te prévienne dès que ton accès est ouvert.',
+		'f-handle': 'Ton pseudo Higgsfield : c’est ce compte que l’équipe va activer.',
+		'f-company': 'Ton projet ou ton entreprise, si tu en as déjà un.',
+		'f-motivation': 'Dis-moi ce que tu viens chercher : des clients, un associé, une formation ?',
+		'c-email': 'Donne-moi l’email de ta demande…',
+		'c-handle': '… et ton pseudo Higgsfield. Je vérifie tout de suite.',
+	};
+
+	const greet = () => {
+		const back = location.hash === '#connexion';
+		say(back
+			? 'Content de te revoir ! Donne-moi ton email et ton pseudo Higgsfield, je regarde où en est ton accès.'
+			: 'Bienvenue au Village Tech ! Je suis l’hôtesse d’accueil. Je vais préparer ton Village Pass avec toi.', 'happy');
+		armIdle();
+	};
+	let greeted = false;
+	document.addEventListener('vt:ready', () => { if (!greeted) { greeted = true; setTimeout(greet, 700); } });
+	setTimeout(() => { if (!greeted) { greeted = true; greet(); } }, 4500);
+
+	// prénom : elle te salue par ton nom
+	let nameTimer: ReturnType<typeof setTimeout> | undefined;
+	let greetedName = '';
+	document.getElementById('f-first')?.addEventListener('input', () => {
+		clearTimeout(nameTimer);
+		nameTimer = setTimeout(() => {
+			const n = firstName();
+			if (n.length >= 2 && n !== greetedName) {
+				greetedName = n;
+				say(`Enchantée, ${n} ! Ton pass commence à prendre forme, regarde.`, 'happy');
+			}
+		}, 900);
+	});
+	Object.entries(FOCUS_LINES).forEach(([id, line]) =>
+		document.getElementById(id)?.addEventListener('focus', () => say(line)),
+	);
+	document.querySelectorAll<HTMLInputElement>('.stage-opt input').forEach((r) =>
+		r.addEventListener('change', () => say(STAGE_LINES[r.value] ?? '', 'happy')),
+	);
+	document.querySelector('.consent input')?.addEventListener('change', (e) => {
+		if ((e.target as HTMLInputElement).checked) say('Parfait. Tu peux transmettre ta demande quand tu veux.', 'happy');
+	});
+
+	document.addEventListener('vt:step', (e) => {
+		const n = (e as CustomEvent).detail as number;
+		const nm = firstName();
+		say([
+			'On reprend : ton identité.',
+			`${nm ? nm + ', p' : 'P'}arle-moi de ton projet. Tu en es où ?`,
+			'Dernière étape : dis-moi ce que tu viens chercher au Village.',
+		][n] ?? '');
+	});
+	document.addEventListener('vt:tab', (e) => {
+		const k = (e as CustomEvent).detail;
+		say(k === 'log'
+			? 'Tu as déjà fait ta demande ? Donne-moi ton email et ton pseudo, je vérifie.'
+			: 'On prépare ta demande d’accès. Ça prend deux minutes.');
+	});
+	document.addEventListener('vt:error', () => say('Oups, il manque quelque chose. Regarde le message en rouge.', 'alert', true));
+	document.addEventListener('vt:transmit', () => say('Je transmets ta demande à l’équipe…', 'think'));
+	document.addEventListener('vt:success', () => {
+		const nm = firstName();
+		say(`C’est fait${nm ? ', ' + nm : ''} ! L’équipe va activer ton compte sur Higgsfield. Tu recevras un mail dès que la porte est ouverte.`, 'happy');
+	});
+	document.addEventListener('vt:result', (e) => {
+		const st = (e as CustomEvent).detail as string;
+		const lines: Record<string, [string, 'happy' | 'think' | 'alert']> = {
+			valide: ['Ton accès est ouvert. Bienvenue au Village ! Clique sur « Entrer », je t’attends à l’intérieur.', 'happy'],
+			en_attente: ['Ta demande est bien là. L’équipe s’en occupe, tu recevras un mail très vite.', 'think'],
+			refuse: ['Désolée, ta demande n’a pas été retenue pour cette bêta. Écris à l’équipe si tu penses que c’est une erreur.', 'alert'],
+			introuvable: ['Je ne te trouve pas… Vérifie ton email et ton pseudo, ou fais une demande dans l’autre onglet.', 'alert'],
+		};
+		const [line, mood] = lines[st] ?? lines.introuvable;
+		say(line, mood, true);
 	});
 </script>
 
@@ -1565,20 +1741,6 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		border-top: 0;
 	}
 
-	.boot {
-		min-height: 3.6em;
-		font-size: 0.72rem;
-		color: #8ec5ffb3;
-		margin-bottom: 18px;
-	}
-	.boot :global(p) {
-		margin: 0;
-		line-height: 1.2em;
-	}
-	.boot :global(b) {
-		color: var(--online);
-		font-weight: 500;
-	}
 
 	/* onglets */
 	.tabs {
@@ -1712,9 +1874,6 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	@media (max-width: 520px) {
 		.steps {
 			font-size: 0.62rem;
-		}
-		.boot {
-			display: none;
 		}
 		.row {
 			grid-template-columns: 1fr;
@@ -2157,9 +2316,6 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	}
 	.portal.ready .hud-bottom {
 		transition-delay: 0.5s;
-	}
-	.portal.ready .boot {
-		animation: fadeIn 0.4s 0.8s both;
 	}
 	@keyframes fadeIn {
 		from {
@@ -2683,6 +2839,368 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 			border-color 0.2s;
 	}
 
+	/* ================= HÔTESSE ================= */
+	.host-col {
+		display: none;
+	}
+	@media (min-width: 1280px) {
+		.stage {
+			max-width: 1480px;
+			grid-template-columns: 250px minmax(0, 0.9fr) minmax(0, 1.05fr);
+			gap: clamp(24px, 3vw, 56px);
+		}
+		.host-col {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: flex-end;
+			align-self: stretch;
+			position: relative;
+			transition: opacity 0.9s, transform 1.1s cubic-bezier(0.16, 1, 0.3, 1), filter 0.9s;
+		}
+		.portal.pre .host-col {
+			opacity: 0;
+			transform: translateY(40px) scale(0.9);
+			filter: blur(10px) brightness(3);
+		}
+		.portal.ready .host-col {
+			transition-delay: 0.05s;
+		}
+		.comm {
+			display: none !important;
+		}
+	}
+
+	/* bulle */
+	.bubble {
+		position: relative;
+		width: 100%;
+		min-height: 120px;
+		padding: 16px 18px;
+		margin-bottom: 18px;
+		border-radius: 14px 14px 14px 4px;
+		background: linear-gradient(180deg, #12244acc, #0a1430e6);
+		border: 1px solid #8ec5ff55;
+		box-shadow: 0 0 30px -8px #3b82f6aa;
+		backdrop-filter: blur(12px);
+		translate: calc(var(--px, 0) * -8px) calc(var(--py, 0) * -6px);
+	}
+	.bubble::after {
+		content: '';
+		position: absolute;
+		left: 40%;
+		bottom: -9px;
+		width: 16px;
+		height: 16px;
+		background: #0a1430;
+		border-right: 1px solid #8ec5ff55;
+		border-bottom: 1px solid #8ec5ff55;
+		transform: rotate(45deg);
+	}
+	.bubble-name,
+	.comm-name {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 0 0 6px;
+		font-size: 0.64rem;
+		text-transform: uppercase;
+		letter-spacing: 0.18em;
+		color: var(--sky);
+	}
+	.live {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--online);
+		box-shadow: 0 0 8px var(--online);
+	}
+	.portal.talking .live {
+		animation: blink 0.5s steps(2) infinite;
+	}
+	.bubble-text,
+	.comm-text {
+		margin: 0;
+		font-size: 0.95rem;
+		line-height: 1.5;
+		color: #e6edf8;
+	}
+	.say.dots::after {
+		content: '';
+		display: inline-block;
+		width: 1.6em;
+		text-align: left;
+		animation: dots 1s steps(4) infinite;
+	}
+	@keyframes dots {
+		0% {
+			content: '';
+		}
+		25% {
+			content: '.';
+		}
+		50% {
+			content: '..';
+		}
+		75% {
+			content: '...';
+		}
+	}
+	.caret {
+		display: inline-block;
+		width: 7px;
+		height: 1em;
+		margin-left: 3px;
+		vertical-align: -2px;
+		background: var(--sky);
+		opacity: 0;
+	}
+	.portal.talking .caret {
+		opacity: 1;
+		animation: blink 0.6s steps(2) infinite;
+	}
+
+	/* hologramme en pied */
+	.host {
+		position: relative;
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		padding-bottom: 26px;
+		translate: calc(var(--px, 0) * 22px) calc(var(--py, 0) * 10px);
+	}
+	.host-img {
+		position: relative;
+		height: min(52vh, 470px);
+		width: auto;
+		display: block;
+		-webkit-mask-image: repeating-linear-gradient(180deg, #000 0 3px, #000c 3px 4px),
+			linear-gradient(180deg, #000 82%, transparent);
+		-webkit-mask-composite: source-in;
+		mask-image: repeating-linear-gradient(180deg, #000 0 3px, #000c 3px 4px),
+			linear-gradient(180deg, #000 82%, transparent);
+		mask-composite: intersect;
+		transform-origin: 50% 100%;
+		animation: hostIdle 5s ease-in-out infinite, hostFlicker 7s steps(1) infinite;
+	}
+	.host-fig {
+		position: relative;
+		filter: drop-shadow(0 0 2px #8ec5ff) drop-shadow(0 0 22px #3b82f6aa) saturate(0.9);
+		transition: filter 0.6s;
+	}
+	@keyframes hostIdle {
+		0%,
+		100% {
+			transform: translateY(0) rotate(0);
+		}
+		50% {
+			transform: translateY(-8px) rotate(-0.6deg);
+		}
+	}
+	@keyframes hostFlicker {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		62% {
+			opacity: 1;
+		}
+		63% {
+			opacity: 0.55;
+			translate: 3px 0;
+		}
+		64% {
+			opacity: 1;
+			translate: 0 0;
+		}
+		65% {
+			opacity: 0.8;
+		}
+		66% {
+			opacity: 1;
+		}
+	}
+	.host.nod .host-img {
+		animation: hostNod 0.6s cubic-bezier(0.3, 1.6, 0.5, 1), hostIdle 5s 0.6s ease-in-out infinite;
+	}
+	@keyframes hostNod {
+		0% {
+			transform: translateY(0) scale(1);
+		}
+		40% {
+			transform: translateY(-10px) scale(1.02);
+		}
+		100% {
+			transform: translateY(0) scale(1);
+		}
+	}
+	.host-lens {
+		position: absolute;
+		left: calc(50% - 6px);
+		top: 6.9%;
+		width: 9px;
+		height: 9px;
+		border-radius: 50%;
+		background: #8ec5ff;
+		box-shadow: 0 0 10px 3px #3b82f6;
+		opacity: 0.35;
+		animation: hostIdle 5s ease-in-out infinite;
+	}
+	.portal.talking .host-lens {
+		animation: lens 0.18s ease-in-out infinite alternate, hostIdle 5s ease-in-out infinite;
+	}
+	@keyframes lens {
+		from {
+			opacity: 0.4;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+	.host-scan {
+		position: absolute;
+		left: 15%;
+		right: 15%;
+		height: 2px;
+		top: 0;
+		background: linear-gradient(90deg, transparent, #8ec5ffcc, transparent);
+		box-shadow: 0 0 14px #3b82f6;
+		animation: hostScan 4.5s ease-in-out infinite;
+		pointer-events: none;
+	}
+	@keyframes hostScan {
+		0% {
+			top: 0;
+			opacity: 0;
+		}
+		10% {
+			opacity: 1;
+		}
+		80% {
+			opacity: 1;
+		}
+		100% {
+			top: 88%;
+			opacity: 0;
+		}
+	}
+	.host-beam {
+		position: absolute;
+		bottom: 18px;
+		left: 50%;
+		width: 220px;
+		height: 92%;
+		translate: -50% 0;
+		background: linear-gradient(0deg, #3b82f655, #8ec5ff14 45%, transparent 80%);
+		clip-path: polygon(38% 100%, 62% 100%, 100% 0, 0 0);
+		filter: blur(4px);
+		animation: beamPulse 3s ease-in-out infinite;
+	}
+	@keyframes beamPulse {
+		50% {
+			opacity: 0.55;
+		}
+	}
+	.host-base {
+		position: absolute;
+		bottom: 0;
+		left: 50%;
+		width: 200px;
+		height: 44px;
+		translate: -50% 0;
+	}
+	.host-base i {
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		border: 2px solid #8ec5ff;
+		box-shadow: 0 0 20px #3b82f6, inset 0 0 20px #3b82f688;
+		background: radial-gradient(ellipse, #3b82f655, transparent 70%);
+	}
+	.host-base i:nth-child(2) {
+		inset: 8px 30px;
+		border-style: dashed;
+		opacity: 0.6;
+		animation: spin 6s linear infinite;
+	}
+	.host-base i:nth-child(3) {
+		inset: -8px -20px;
+		border-width: 1px;
+		opacity: 0;
+		animation: ripple 2.6s ease-out infinite;
+	}
+	@keyframes ripple {
+		0% {
+			opacity: 0.8;
+			transform: scale(0.7);
+		}
+		100% {
+			opacity: 0;
+			transform: scale(1.3);
+		}
+	}
+
+	/* humeurs */
+	.portal[data-mood='happy'] .host-fig {
+		filter: drop-shadow(0 0 2px #b9f5cf) drop-shadow(0 0 26px #34c76f88) saturate(0.95);
+	}
+	.portal[data-mood='alert'] .host-fig {
+		filter: drop-shadow(0 0 2px #ffb3a8) drop-shadow(0 0 26px #ff8a7aaa) saturate(0.9);
+	}
+	.portal[data-mood='alert'] .host-lens {
+		background: #ff8a7a;
+		box-shadow: 0 0 10px 3px #ff5a4a;
+	}
+	.portal[data-mood='alert'] .bubble,
+	.portal[data-mood='alert'] .comm {
+		border-color: #ff8a7a77;
+	}
+	.portal[data-mood='happy'] .bubble {
+		border-color: #34c76f66;
+	}
+	.portal[data-mood='think'] .host-lens {
+		animation: lens 0.5s ease-in-out infinite alternate, hostIdle 5s ease-in-out infinite;
+	}
+
+	/* portrait dans la console (écrans moyens et mobile) */
+	.comm {
+		display: flex;
+		gap: 14px;
+		align-items: flex-start;
+		margin-bottom: 22px;
+		padding: 12px 14px;
+		border-radius: 12px;
+		background: #04070f8c;
+		border: 1px solid #8ec5ff2e;
+		min-height: 92px;
+	}
+	.comm-face {
+		position: relative;
+		flex: none;
+		width: 60px;
+		height: 60px;
+		border-radius: 50%;
+		padding: 2px;
+		background: conic-gradient(from 0deg, var(--sky), var(--blue), transparent, var(--sky));
+		animation: spin 6s linear infinite;
+	}
+	.comm-face img {
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+		object-fit: cover;
+		animation: spin 6s linear infinite reverse;
+	}
+	.portal.talking .comm-face {
+		box-shadow: 0 0 0 4px #3b82f633, 0 0 24px #3b82f6aa;
+	}
+	.comm-body {
+		min-width: 0;
+	}
+	.comm-text {
+		font-size: 0.9rem;
+	}
+
 	/* mouvement réduit */
 	@media (prefers-reduced-motion: reduce) {
 		.intro,
@@ -2690,7 +3208,9 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		.searchlight,
 		.airship,
 		.star-shoot,
-		.run {
+		.run,
+		.host-scan,
+		.host-beam {
 			display: none !important;
 		}
 		.portal *,
