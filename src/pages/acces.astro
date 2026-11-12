@@ -14,10 +14,10 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		<div class="intro" id="intro" aria-hidden="true">
 			<canvas id="warp"></canvas>
 			<div class="intro-core">
-				<svg class="intro-logo" viewBox="0 0 100 100">
-					<path class="v-l" d="M8 18 H30 L52 60 V90 Z" />
-					<path class="v-r" d="M92 18 H70 L52 54 V90 Z" />
-					<path class="v-s" d="M57 18 H69 L59 36 H47 Z" />
+				<svg class="intro-logo" viewBox="200 280 680 565">
+					<path class="v-l" pathLength="100" d="M216 297H310Q320 297 326 305L541 600V826Z" />
+					<path class="v-r" pathLength="100" d="M750 297H864L541 826V600Z" />
+					<path class="v-s" pathLength="100" d="M573 297H669L540 487L490 418Z" />
 				</svg>
 				<p class="intro-title">Le Village Tech</p>
 				<p class="intro-sub mono" id="intro-sub">Ouverture du portail</p>
@@ -101,7 +101,7 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 						</div>
 
 						<div class="pass-holo" aria-hidden="true">
-							<img src="/images/logo.png" alt="" />
+							<img src="/images/logo-v.svg" alt="" />
 							<span class="holo-scan"></span>
 							<span class="holo-base"></span>
 						</div>
@@ -298,6 +298,21 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 				</div>
 			</section>
 		</main>
+
+		<section class="confirm" id="confirm" hidden aria-labelledby="confirm-title" tabindex="-1">
+			<p class="confirm-badge"><i></i> Place confirmée</p>
+			<h1 id="confirm-title">Ton Village Pass est réservé.</h1>
+			<p class="confirm-lede">
+				Direction <strong>le Village Tech</strong>, en accès bêta. On active ton compte sur Higgsfield
+				et on t'envoie tout par mail dès que la porte s'ouvre.
+			</p>
+			<div class="confirm-slot" id="confirm-slot"></div>
+			<p class="confirm-bye">À très vite au Village<span id="confirm-name"></span>.</p>
+			<div class="confirm-actions">
+				<button type="button" class="btn-ghost-hud" id="confirm-check">Vérifier mon statut</button>
+				<a class="btn-ghost-hud" href="/">Découvrir le Village →</a>
+			</div>
+		</section>
 
 		<footer class="hud hud-bottom mono">
 			<span>Bêta gratuite · validation manuelle par l'équipe</span>
@@ -1125,6 +1140,55 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	});
 </script>
 
+<script>
+	/* =========================================================
+	   CONFIRMATION : « Place confirmée », le pass vole au centre
+	   ========================================================= */
+	const reducedC = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const portalC = document.querySelector('.portal') as HTMLElement;
+	const passC = document.getElementById('pass') as HTMLElement;
+	const homeC = passC.parentElement as HTMLElement;
+	const confirmC = document.getElementById('confirm') as HTMLElement;
+	const slotC = document.getElementById('confirm-slot') as HTMLElement;
+
+	const flipMove = (target: HTMLElement) => {
+		const from = passC.getBoundingClientRect();
+		target.appendChild(passC);
+		if (reducedC) return;
+		const to = passC.getBoundingClientRect();
+		const dx = from.left + from.width / 2 - (to.left + to.width / 2);
+		const dy = from.top + from.height / 2 - (to.top + to.height / 2);
+		const sc = from.width / to.width;
+		passC.animate(
+			[
+				{ transform: `translate(${dx}px, ${dy}px) scale(${sc})`, filter: 'brightness(1.6)' },
+				{ transform: 'translate(0, -40px) scale(1.06) rotate(-2deg)', filter: 'brightness(1.3)', offset: 0.7 },
+				{ transform: 'translate(0, 0) scale(1) rotate(0deg)', filter: 'brightness(1)' },
+			],
+			{ duration: 1100, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' },
+		);
+	};
+
+	document.addEventListener('vt:success', () => {
+		setTimeout(() => {
+			const n = String(new FormData(document.getElementById('beta-form') as HTMLFormElement).get('first_name') ?? '').trim().split(/\s+/)[0];
+			(document.getElementById('confirm-name') as HTMLElement).textContent = n ? `, ${n}` : '';
+			portalC.classList.add('confirmed');
+			confirmC.hidden = false;
+			flipMove(slotC);
+			confirmC.focus({ preventScroll: true });
+			window.scrollTo({ top: 0, behavior: reducedC ? 'auto' : 'smooth' });
+		}, reducedC ? 0 : 1300);
+	});
+
+	document.getElementById('confirm-check')?.addEventListener('click', () => {
+		portalC.classList.remove('confirmed');
+		confirmC.hidden = true;
+		flipMove(homeC);
+		(document.getElementById('tab-log') as HTMLButtonElement).click();
+	});
+</script>
+
 <style>
 	/* ================= BASE ================= */
 	:global(body) {
@@ -1521,9 +1585,8 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		margin: 10px 0;
 	}
 	.pass-holo img {
-		width: 46%;
-		max-width: 150px;
-		border-radius: 22%;
+		width: 52%;
+		max-width: 170px;
 		opacity: 0.85;
 		mix-blend-mode: screen;
 		filter: drop-shadow(0 0 24px #3b82f6) saturate(1.3);
@@ -2347,16 +2410,16 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		transition: transform 0.6s cubic-bezier(0.7, 0, 0.84, 0), opacity 0.5s;
 	}
 	.intro-logo {
-		width: 120px;
-		height: 120px;
+		width: 140px;
+		height: 116px;
 		overflow: visible;
 		filter: drop-shadow(0 0 18px #3b82f6) drop-shadow(0 0 40px #3b82f688);
 	}
 	.intro-logo path {
-		stroke-width: 1.4;
+		stroke-width: 6;
 		stroke-linejoin: round;
-		stroke-dasharray: 260;
-		stroke-dashoffset: 260;
+		stroke-dasharray: 100;
+		stroke-dashoffset: 100;
 		fill-opacity: 0;
 		animation: draw 1.3s cubic-bezier(0.6, 0, 0.2, 1) forwards, fillIn 0.6s 1.1s forwards;
 	}
@@ -3153,6 +3216,127 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 	}
 	.comm-text {
 		font-size: 0.9rem;
+	}
+
+	/* ================= CONFIRMATION ================= */
+	.confirm {
+		position: absolute;
+		inset: 72px 0 60px;
+		z-index: 5;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		padding: 24px 20px;
+		outline: none;
+		pointer-events: none;
+	}
+	.confirm > * {
+		pointer-events: auto;
+	}
+	.confirm[hidden] {
+		display: none !important;
+	}
+	.confirm-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		margin: 0 0 22px;
+		padding: 8px 18px;
+		border-radius: 10px;
+		background: #34c76f1a;
+		border: 1px solid #34c76f66;
+		color: #b9f5cf;
+		font-weight: 600;
+		animation: confIn 0.7s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+	}
+	.confirm-badge i {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--online);
+		box-shadow: 0 0 10px var(--online);
+	}
+	.confirm h1 {
+		font-size: clamp(2.2rem, 5.4vw, 4.2rem);
+		margin: 0 0 14px;
+		animation: confIn 0.8s 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+	}
+	.confirm-lede {
+		max-width: 620px;
+		margin: 0 0 34px;
+		font-size: clamp(1rem, 1.6vw, 1.2rem);
+		color: var(--ink-dim);
+		animation: confIn 0.8s 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+	}
+	.confirm-lede strong {
+		color: var(--ink);
+	}
+	.confirm-slot {
+		width: min(400px, 100%);
+		perspective: 1100px;
+	}
+	.confirm-slot .pass {
+		width: 100%;
+		aspect-ratio: auto;
+		box-shadow: 0 0 0 1px #ffffff0d inset, 0 50px 100px -30px #000, 0 0 100px -10px #f5b84b66;
+	}
+	.confirm-slot .pass-holo {
+		display: none;
+	}
+	.confirm-slot .pass-id {
+		margin-top: 26px;
+	}
+	.confirm-bye {
+		margin: 34px 0 20px;
+		color: var(--ink-dim);
+		font-size: 1.05rem;
+		animation: confIn 0.8s 1.2s both;
+	}
+	.confirm-actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 12px;
+		animation: confIn 0.8s 1.35s both;
+	}
+	.confirm-actions a {
+		text-decoration: none;
+	}
+	@keyframes confIn {
+		from {
+			opacity: 0;
+			transform: translateY(18px);
+			filter: blur(6px);
+		}
+	}
+	/* la scène s'efface autour */
+	.portal.confirmed .pass-col,
+	.portal.confirmed .console {
+		opacity: 0;
+		visibility: hidden;
+		transform: scale(0.94);
+		filter: blur(6px);
+		transition: opacity 0.6s, transform 0.8s, filter 0.6s, visibility 0s 0.6s;
+	}
+	.portal.confirmed .host-col {
+		transform: translateX(-10px);
+	}
+	@media (max-width: 1279px) {
+		.portal.confirmed .stage {
+			display: none;
+		}
+		.confirm {
+			position: relative;
+			inset: auto;
+			flex: 1;
+		}
+	}
+	@media (min-width: 1280px) {
+		.confirm {
+			left: 330px;
+		}
 	}
 
 	/* mouvement réduit */
