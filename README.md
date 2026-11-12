@@ -27,3 +27,10 @@ Une même adresse email ne peut faire qu'une seule demande.
 ## Images
 Les visuels de `public/images/` sont découpés depuis les slides de la visite guidée (1080 px de large).
 Pour un rendu plus net sur grand écran, remplacez-les par des captures HD (mêmes noms de fichiers).
+
+## Portail (`/acces`)
+- Onglet **Demander l'accès** : formulaire en 3 étapes avec un « Village Pass » qui se remplit en direct.
+- Onglet **Déjà inscrit ?** : la personne entre son email + pseudo Higgsfield et voit son statut
+  (en attente / validé / refusé). Si c'est validé, un bouton l'envoie vers le Village sur Higgsfield.
+  Ça utilise la fonction `beta_status` du fichier SQL (relancez le fichier en entier si vous l'aviez déjà exécuté).
+- Lien direct vers l'onglet connexion : `/acces#connexion`.

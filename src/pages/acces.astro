@@ -4,153 +4,471 @@ import Layout from '../layouts/Layout.astro';
 const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfield.ai';
 ---
 
-<Layout title="Portail d'accès — Le Village Tech" description="Demande ton accès à la bêta gratuite du Village Tech.">
-	<section class="portal wrap">
-		<aside class="side">
-			<div class="side-img">
-				<img src="/images/accueil.webp" alt="L'hôtesse de l'accueil du Village Tech" width="948" height="736" />
-			</div>
-			<p class="eyebrow">Portail d'accès</p>
-			<h1>Demande ton entrée au Village.</h1>
-			<p class="dim">
-				La bêta est gratuite. On lit chaque demande et on active ton compte nous-mêmes sur
-				Higgsfield. Tu reçois un mail dès que la porte est ouverte.
-			</p>
-
-			<ul class="checks">
-				<li>Aucune carte bancaire</li>
-				<li>Validation manuelle par l'équipe</li>
-				<li>Tes infos servent uniquement à la bêta</li>
-			</ul>
-
-			<div class="already">
-				<p><strong>Déjà validé ?</strong></p>
-				<a class="btn-ghost" href={higgsfieldUrl} target="_blank" rel="noopener">
-					Entrer dans le Village ↗
-				</a>
-			</div>
-		</aside>
-
-		<div class="card">
-			<form id="beta-form" novalidate>
-				<div class="row">
-					<label>
-						<span>Prénom *</span>
-						<input name="first_name" required autocomplete="given-name" maxlength="80" />
-					</label>
-					<label>
-						<span>Nom *</span>
-						<input name="last_name" required autocomplete="family-name" maxlength="80" />
-					</label>
-				</div>
-
-				<label>
-					<span>Email *</span>
-					<input name="email" type="email" required autocomplete="email" maxlength="200" />
-					<small>C'est là qu'on t'écrit quand ton compte est activé.</small>
-				</label>
-
-				<label>
-					<span>Pseudo Higgsfield *</span>
-					<input name="higgsfield_username" required maxlength="80" placeholder="@ton-pseudo" />
-					<small>
-						Pas encore de compte ?
-						<a href="https://higgsfield.ai" target="_blank" rel="noopener">Crée-le ici</a>, c'est gratuit.
-					</small>
-				</label>
-
-				<div class="row">
-					<label>
-						<span>Ton projet / entreprise</span>
-						<input name="company" maxlength="120" autocomplete="organization" />
-					</label>
-					<label>
-						<span>Où en es-tu ? *</span>
-						<select name="stage" required>
-							<option value="">Choisir…</option>
-							<option value="idee">J'ai une idée</option>
-							<option value="lancement">Je lance mon projet</option>
-							<option value="activite">Mon activité tourne</option>
-							<option value="croissance">Je recrute / je lève</option>
-							<option value="autre">Autre (freelance, mentor…)</option>
-						</select>
-					</label>
-				</div>
-
-				<label>
-					<span>Ton secteur</span>
-					<input name="sector" maxlength="80" placeholder="Tech, commerce, santé, artisanat…" />
-				</label>
-
-				<label>
-					<span>Qu'est-ce que tu viens chercher dans le Village ? *</span>
-					<textarea name="motivation" required rows="4" maxlength="1000"></textarea>
-				</label>
-
-				<label>
-					<span>Comment tu nous as connus ?</span>
-					<input name="referral" maxlength="120" />
-				</label>
-
-				<!-- piège à robots : invisible pour les humains -->
-				<label class="hp" aria-hidden="true">
-					<span>Ne pas remplir</span>
-					<input name="website" tabindex="-1" autocomplete="off" />
-				</label>
-
-				<label class="consent">
-					<input type="checkbox" name="consent" required />
-					<span>
-						J'accepte que Le Village Tech utilise ces informations pour gérer mon accès à la bêta et
-						me contacter à ce sujet. <a href="/confidentialite">En savoir plus</a>
-					</span>
-				</label>
-
-				<p class="error" id="form-error" role="alert" hidden></p>
-
-				<button class="btn submit" type="submit">Envoyer ma demande</button>
-			</form>
-
-			<div class="success" id="form-success" hidden tabindex="-1">
-				<div class="lantern" aria-hidden="true"></div>
-				<h2>Demande reçue.</h2>
-				<p>
-					On vérifie ton profil et on active ton compte sur Higgsfield. Tu recevras un mail à
-					<strong id="success-email"></strong> dès que c'est fait.
-				</p>
-				<a href="/" class="btn-ghost">Retour à l'accueil</a>
-			</div>
+<Layout
+	title="Portail d'accès — Le Village Tech"
+	description="Demande ton accès à la bêta gratuite du Village Tech, ou vérifie si ton compte est validé."
+	bare
+>
+	<div class="portal" data-higgsfield={higgsfieldUrl}>
+		<!-- ====== DÉCOR ====== -->
+		<div class="bg" aria-hidden="true">
+			<img class="bg-city" src="/images/nuit.webp" alt="" />
+			<div class="bg-floor"><div class="bg-grid"></div></div>
+			<canvas class="bg-particles" id="particles"></canvas>
+			<div class="bg-beam"></div>
+			<div class="bg-scan"></div>
+			<div class="bg-vignette"></div>
 		</div>
-	</section>
+
+		<!-- ====== HUD HAUT ====== -->
+		<header class="hud hud-top">
+			<a href="/" class="hud-brand" aria-label="Retour au site du Village Tech">
+				<img src="/images/logo.png" alt="" width="34" height="34" />
+				<span>Le Village Tech</span>
+			</a>
+			<p class="hud-center mono"><span class="blink">◆</span> Portail d'accès · Bêta</p>
+			<div class="hud-right mono">
+				<span class="sys"><i class="dot"></i> Système en ligne</span>
+				<time id="clock">--:--:--</time>
+			</div>
+		</header>
+
+		<main class="stage">
+			<!-- ====== PASS ====== -->
+			<section class="pass-col" aria-label="Aperçu de ton Village Pass">
+				<p class="mono label">// Ton Village Pass</p>
+
+				<div class="pass-wrap">
+					<svg class="rings" viewBox="0 0 600 600" aria-hidden="true">
+						<circle cx="300" cy="300" r="290" class="r1" />
+						<circle cx="300" cy="300" r="250" class="r2" />
+						<circle cx="300" cy="300" r="205" class="r3" />
+					</svg>
+
+					<div class="pass" id="pass" data-state="draft">
+						<div class="pass-sheen"></div>
+						<div class="pass-top">
+							<img src="/images/logo.png" alt="" width="30" height="30" />
+							<span class="mono">Village Pass</span>
+							<span class="pass-tag mono">Bêta</span>
+						</div>
+
+						<div class="pass-holo" aria-hidden="true">
+							<img src="/images/logo.png" alt="" />
+							<span class="holo-scan"></span>
+							<span class="holo-base"></span>
+						</div>
+
+						<div class="pass-id">
+							<div class="avatar"><span id="p-initials">?</span></div>
+							<div class="pass-who">
+								<p class="pass-name" id="p-name">Ton nom ici</p>
+								<p class="pass-role" id="p-role">Entrepreneur</p>
+								<p class="pass-handle mono" id="p-handle">@pseudo-higgsfield</p>
+							</div>
+						</div>
+
+						<div class="pass-chips">
+							<span class="chip" id="p-stage">Stade —</span>
+							<span class="chip" id="p-sector">Secteur —</span>
+						</div>
+
+						<div class="pass-bottom">
+							<div>
+								<p class="mono tiny">Statut</p>
+								<p class="status" id="p-status"><i></i><span>Brouillon</span></p>
+								<p class="mono tiny code" id="p-code">VT-····-····</p>
+							</div>
+							<svg class="qr" id="p-qr" viewBox="0 0 11 11" aria-hidden="true"></svg>
+						</div>
+					</div>
+				</div>
+				<p class="pass-hint">Ton pass se génère en direct pendant que tu remplis le formulaire.</p>
+			</section>
+
+			<!-- ====== CONSOLE ====== -->
+			<section class="console" aria-label="Accès au Village">
+				<span class="corner tl"></span><span class="corner tr"></span>
+				<span class="corner bl"></span><span class="corner br"></span>
+
+				<div class="boot mono" id="boot" aria-hidden="true"></div>
+
+				<div class="tabs" role="tablist">
+					<button role="tab" id="tab-req" aria-selected="true" aria-controls="panel-req">Demander l'accès</button>
+					<button role="tab" id="tab-log" aria-selected="false" aria-controls="panel-log">Déjà inscrit ?</button>
+					<span class="tab-ink" aria-hidden="true"></span>
+				</div>
+
+				<!-- ---------- DEMANDE D'ACCÈS ---------- -->
+				<div class="panel" id="panel-req" role="tabpanel" aria-labelledby="tab-req">
+					<ol class="steps mono" aria-label="Étapes">
+						<li class="on"><b>01</b> Identité</li>
+						<li><b>02</b> Projet</li>
+						<li><b>03</b> Validation</li>
+					</ol>
+					<div class="progress"><span id="progress"></span></div>
+
+					<form id="beta-form" novalidate>
+						<fieldset data-step="0" class="step-set on">
+							<legend class="sr">Identité</legend>
+							<div class="row">
+								<div class="field">
+									<input id="f-first" name="first_name" required autocomplete="given-name" maxlength="80" placeholder=" " />
+									<label for="f-first">Prénom</label>
+								</div>
+								<div class="field">
+									<input id="f-last" name="last_name" required autocomplete="family-name" maxlength="80" placeholder=" " />
+									<label for="f-last">Nom</label>
+								</div>
+							</div>
+							<div class="field">
+								<input id="f-email" name="email" type="email" required autocomplete="email" maxlength="200" placeholder=" " />
+								<label for="f-email">Email</label>
+								<small>C'est là qu'on t'écrit quand ton compte est activé.</small>
+							</div>
+							<div class="field">
+								<input id="f-handle" name="higgsfield_username" required maxlength="80" placeholder=" " autocapitalize="off" spellcheck="false" />
+								<label for="f-handle">Pseudo Higgsfield</label>
+								<small>
+									C'est ce compte qu'on active. Pas encore de compte ?
+									<a href="https://higgsfield.ai" target="_blank" rel="noopener">Crée-le ici</a>, c'est gratuit.
+								</small>
+							</div>
+						</fieldset>
+
+						<fieldset data-step="1" class="step-set">
+							<legend class="sr">Projet</legend>
+							<div class="field">
+								<input id="f-company" name="company" maxlength="120" autocomplete="organization" placeholder=" " />
+								<label for="f-company">Projet / entreprise <em>(facultatif)</em></label>
+							</div>
+							<p class="mono q">Où en es-tu ?</p>
+							<div class="stages" role="radiogroup" aria-label="Où en es-tu ?">
+								<label class="stage-opt"><input type="radio" name="stage" value="idee" required /><span><b>Idée</b>J'ai une idée</span></label>
+								<label class="stage-opt"><input type="radio" name="stage" value="lancement" /><span><b>Lancement</b>Je démarre</span></label>
+								<label class="stage-opt"><input type="radio" name="stage" value="activite" /><span><b>Activité</b>Ça tourne</span></label>
+								<label class="stage-opt"><input type="radio" name="stage" value="croissance" /><span><b>Croissance</b>Je recrute / lève</span></label>
+								<label class="stage-opt"><input type="radio" name="stage" value="autre" /><span><b>Autre</b>Freelance, mentor…</span></label>
+							</div>
+							<div class="field">
+								<input id="f-sector" name="sector" maxlength="80" placeholder=" " />
+								<label for="f-sector">Secteur <em>(tech, commerce, santé…)</em></label>
+							</div>
+						</fieldset>
+
+						<fieldset data-step="2" class="step-set">
+							<legend class="sr">Validation</legend>
+							<div class="field">
+								<textarea id="f-motivation" name="motivation" required rows="4" maxlength="1000" placeholder=" "></textarea>
+								<label for="f-motivation">Qu'est-ce que tu viens chercher dans le Village ?</label>
+								<small class="count mono"><span id="count">0</span> / 1000</small>
+							</div>
+							<div class="field">
+								<input id="f-ref" name="referral" maxlength="120" placeholder=" " />
+								<label for="f-ref">Comment tu nous as connus ? <em>(facultatif)</em></label>
+							</div>
+
+							<div class="hp" aria-hidden="true">
+								<input name="website" tabindex="-1" autocomplete="off" />
+							</div>
+
+							<label class="consent">
+								<input type="checkbox" name="consent" required />
+								<span class="box" aria-hidden="true"></span>
+								<span>
+									J'accepte que Le Village Tech utilise ces informations pour gérer mon accès à la bêta
+									et me contacter à ce sujet. <a href="/confidentialite">En savoir plus</a>
+								</span>
+							</label>
+						</fieldset>
+
+						<p class="error mono" id="form-error" role="alert" hidden></p>
+
+						<div class="actions">
+							<button type="button" class="btn-back" id="back" hidden>← Retour</button>
+							<button type="button" class="btn-go" id="next">Continuer <span>→</span></button>
+							<button type="submit" class="btn-go" id="submit" hidden>Transmettre ma demande <span>⟶</span></button>
+						</div>
+					</form>
+
+					<!-- transmission -->
+					<div class="transmit" id="transmit" hidden>
+						<div class="orb"></div>
+						<p class="mono" id="transmit-line">Chiffrement de la demande…</p>
+						<div class="progress"><span id="transmit-bar"></span></div>
+					</div>
+
+					<!-- succès -->
+					<div class="done" id="done" hidden tabindex="-1">
+						<p class="mono label ok">// Demande enregistrée</p>
+						<h2>Bienvenue sur la liste, <span id="done-name"></span>.</h2>
+						<p>
+							On vérifie ton profil et on active ton compte sur Higgsfield. Tu recevras un mail à
+							<strong id="done-email"></strong> dès que la porte est ouverte.
+						</p>
+						<button class="btn-ghost-hud" type="button" data-goto="log">Vérifier mon statut plus tard →</button>
+					</div>
+				</div>
+
+				<!-- ---------- DÉJÀ INSCRIT ---------- -->
+				<div class="panel" id="panel-log" role="tabpanel" aria-labelledby="tab-log" hidden>
+					<p class="intro">
+						Entre l'email et le pseudo Higgsfield de ta demande pour savoir où en est ton accès.
+					</p>
+					<form id="check-form" novalidate>
+						<div class="field">
+							<input id="c-email" name="email" type="email" required autocomplete="email" placeholder=" " />
+							<label for="c-email">Email</label>
+						</div>
+						<div class="field">
+							<input id="c-handle" name="handle" required placeholder=" " autocapitalize="off" spellcheck="false" />
+							<label for="c-handle">Pseudo Higgsfield</label>
+						</div>
+						<p class="error mono" id="check-error" role="alert" hidden></p>
+						<div class="actions">
+							<button type="submit" class="btn-go" id="check-btn">Vérifier mon accès <span>→</span></button>
+						</div>
+					</form>
+
+					<div class="result" id="result" hidden aria-live="polite"></div>
+
+					<div class="enter">
+						<p class="mono tiny">Compte déjà validé</p>
+						<a class="btn-enter" href={higgsfieldUrl} target="_blank" rel="noopener">
+							<span>Entrer dans le Village</span><b>↗</b>
+						</a>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<footer class="hud hud-bottom mono">
+			<span>Bêta gratuite · validation manuelle par l'équipe</span>
+			<a href="/confidentialite">Confidentialité</a>
+			<a href="/">← Retour au site</a>
+		</footer>
+	</div>
 </Layout>
 
 <script>
 	const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
 	const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+	const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+	const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-	const form = document.getElementById('beta-form') as HTMLFormElement;
-	const errorEl = document.getElementById('form-error') as HTMLParagraphElement;
-	const successEl = document.getElementById('form-success') as HTMLDivElement;
-	const submitBtn = form.querySelector('button[type=submit]') as HTMLButtonElement;
+	/* ---------- horloge ---------- */
+	const clock = $('clock');
+	const tick = () => (clock.textContent = new Date().toLocaleTimeString('fr-FR'));
+	tick();
+	setInterval(tick, 1000);
 
-	function showError(msg: string) {
-		errorEl.textContent = msg;
-		errorEl.hidden = false;
+	/* ---------- séquence de démarrage ---------- */
+	(async () => {
+		const boot = $('boot');
+		const lines = ['> connexion au Campus…', '> portail bêta ouvert', '> identifie-toi'];
+		if (reduced) {
+			boot.textContent = lines.join('   ');
+			return;
+		}
+		for (const l of lines) {
+			const p = document.createElement('p');
+			boot.appendChild(p);
+			for (const ch of l) {
+				p.textContent += ch;
+				await sleep(18);
+			}
+			p.insertAdjacentHTML('beforeend', ' <b>OK</b>');
+			await sleep(120);
+		}
+	})();
+
+	/* ---------- particules ---------- */
+	(() => {
+		const c = $<HTMLCanvasElement>('particles');
+		const ctx = c.getContext('2d');
+		if (!ctx || reduced) return;
+		let w = 0, h = 0;
+		const dpr = Math.min(devicePixelRatio || 1, 2);
+		const resize = () => {
+			w = c.clientWidth; h = c.clientHeight;
+			c.width = w * dpr; c.height = h * dpr;
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+		};
+		resize();
+		addEventListener('resize', resize);
+		const N = Math.min(90, Math.round(w / 14));
+		const pts = Array.from({ length: N }, () => ({
+			x: Math.random() * w, y: Math.random() * h,
+			r: Math.random() * 1.6 + 0.3, v: Math.random() * 0.35 + 0.08,
+			a: Math.random() * 0.6 + 0.2,
+		}));
+		const loop = () => {
+			if (!document.hidden) {
+				ctx.clearRect(0, 0, w, h);
+				for (const p of pts) {
+					p.y -= p.v;
+					if (p.y < -5) { p.y = h + 5; p.x = Math.random() * w; }
+					ctx.beginPath();
+					ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+					ctx.fillStyle = `rgba(142,197,255,${p.a})`;
+					ctx.shadowColor = '#3b82f6';
+					ctx.shadowBlur = 8;
+					ctx.fill();
+				}
+			}
+			requestAnimationFrame(loop);
+		};
+		loop();
+	})();
+
+	/* ---------- pass : inclinaison 3D ---------- */
+	const pass = $('pass');
+	if (!reduced && matchMedia('(hover: hover)').matches) {
+		const wrap = pass.parentElement as HTMLElement;
+		wrap.addEventListener('pointermove', (e) => {
+			const r = pass.getBoundingClientRect();
+			const x = (e.clientX - r.left) / r.width - 0.5;
+			const y = (e.clientY - r.top) / r.height - 0.5;
+			pass.style.setProperty('--rx', `${(-y * 14).toFixed(2)}deg`);
+			pass.style.setProperty('--ry', `${(x * 18).toFixed(2)}deg`);
+			pass.style.setProperty('--mx', `${((x + 0.5) * 100).toFixed(1)}%`);
+			pass.style.setProperty('--my', `${((y + 0.5) * 100).toFixed(1)}%`);
+		});
+		wrap.addEventListener('pointerleave', () => {
+			pass.style.setProperty('--rx', '0deg');
+			pass.style.setProperty('--ry', '0deg');
+		});
 	}
+
+	/* ---------- pass : rendu en direct ---------- */
+	const form = $<HTMLFormElement>('beta-form');
+	const STAGES: Record<string, string> = {
+		idee: 'Idée', lancement: 'Lancement', activite: 'En activité', croissance: 'Croissance', autre: 'Autre',
+	};
+	const hash = (s: string) => {
+		let h = 2166136261;
+		for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+		return h >>> 0;
+	};
+	const drawQR = (seed: number) => {
+		const svg = $('p-qr') as unknown as SVGElement;
+		let out = '';
+		let s = seed || 1;
+		const finder = (x: number, y: number) =>
+			`<rect x="${x}" y="${y}" width="3" height="3" fill="none" stroke="currentColor" stroke-width=".6"/><rect x="${x + 1}" y="${y + 1}" width="1" height="1"/>`;
+		for (let y = 0; y < 11; y++)
+			for (let x = 0; x < 11; x++) {
+				const inFinder = (x < 4 && y < 4) || (x > 6 && y < 4) || (x < 4 && y > 6);
+				s = (Math.imul(s, 1103515245) + 12345) >>> 0;
+				if (!inFinder && s % 100 < 46) out += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+			}
+		svg.innerHTML = finder(0, 0) + finder(8, 0) + finder(0, 8) + out;
+	};
+	const val = (n: string) => String(new FormData(form).get(n) ?? '').trim();
+	const render = () => {
+		const first = val('first_name'), last = val('last_name');
+		const company = val('company'), sector = val('sector'), email = val('email');
+		const handle = val('higgsfield_username').replace(/^@/, '');
+		const stage = val('stage');
+		$('p-name').textContent = [first, last].filter(Boolean).join(' ') || 'Ton nom ici';
+		$('p-initials').textContent = ((first[0] ?? '') + (last[0] ?? '')).toUpperCase() || '?';
+		$('p-role').textContent = company ? `Fondateur · ${company}` : 'Entrepreneur';
+		$('p-handle').textContent = '@' + (handle || 'pseudo-higgsfield');
+		$('p-stage').textContent = STAGES[stage] ?? 'Stade —';
+		$('p-sector').textContent = sector || 'Secteur —';
+		const h = hash(email.toLowerCase() + handle.toLowerCase());
+		const hex = h.toString(16).toUpperCase().padStart(8, '0');
+		$('p-code').textContent = email ? `VT-${hex.slice(0, 4)}-${hex.slice(4)}` : 'VT-····-····';
+		drawQR(email ? h : 7);
+		$('count').textContent = String(val('motivation').length);
+	};
+	form.addEventListener('input', render);
+	render();
+
+	const setStatus = (state: 'draft' | 'pending' | 'valide' | 'refuse', label: string) => {
+		pass.dataset.state = state;
+		($('p-status').querySelector('span') as HTMLElement).textContent = label;
+	};
+
+	/* ---------- onglets ---------- */
+	const tabs = { req: $('tab-req'), log: $('tab-log') };
+	const panels = { req: $('panel-req'), log: $('panel-log') };
+	const show = (k: 'req' | 'log') => {
+		(Object.keys(tabs) as ('req' | 'log')[]).forEach((t) => {
+			tabs[t].setAttribute('aria-selected', String(t === k));
+			panels[t].hidden = t !== k;
+		});
+		(document.querySelector('.tabs') as HTMLElement).dataset.active = k;
+	};
+	tabs.req.addEventListener('click', () => show('req'));
+	tabs.log.addEventListener('click', () => show('log'));
+	document.querySelectorAll<HTMLElement>('[data-goto="log"]').forEach((b) => b.addEventListener('click', () => show('log')));
+	if (location.hash === '#connexion') show('log');
+
+	/* ---------- étapes ---------- */
+	const sets = Array.from(form.querySelectorAll<HTMLFieldSetElement>('.step-set'));
+	const stepLis = Array.from(document.querySelectorAll('.steps li'));
+	const errorEl = $('form-error');
+	const btnNext = $<HTMLButtonElement>('next'), btnBack = $<HTMLButtonElement>('back'), btnSubmit = $<HTMLButtonElement>('submit');
+	let step = 0;
+
+	const showError = (el: HTMLElement, msg: string) => { el.textContent = msg; el.hidden = false; };
+	const goStep = (n: number) => {
+		step = n;
+		sets.forEach((s, i) => s.classList.toggle('on', i === n));
+		stepLis.forEach((li, i) => { li.classList.toggle('on', i === n); li.classList.toggle('done', i < n); });
+		$('progress').style.width = `${((n + 1) / sets.length) * 100}%`;
+		btnBack.hidden = n === 0;
+		btnNext.hidden = n === sets.length - 1;
+		btnSubmit.hidden = n !== sets.length - 1;
+		errorEl.hidden = true;
+		(sets[n].querySelector('input:not([type=radio]),textarea') as HTMLElement | null)?.focus({ preventScroll: true });
+	};
+	const validStep = (n: number) => {
+		const fields = Array.from(sets[n].querySelectorAll<HTMLInputElement>('input,textarea,select'));
+		const bad = fields.find((f) => !f.checkValidity());
+		if (!bad) return true;
+		bad.focus();
+		const msg =
+			bad.type === 'email' && bad.value ? 'Cet email ne semble pas valide.'
+			: bad.type === 'checkbox' ? 'Coche la case de consentement pour continuer.'
+			: bad.type === 'radio' ? 'Choisis où tu en es.'
+			: 'Il manque un champ obligatoire.';
+		showError(errorEl, '! ' + msg);
+		sets[n].classList.remove('shake');
+		void sets[n].offsetWidth;
+		sets[n].classList.add('shake');
+		return false;
+	};
+	btnNext.addEventListener('click', () => validStep(step) && goStep(step + 1));
+	btnBack.addEventListener('click', () => goStep(step - 1));
+	form.addEventListener('keydown', (e) => {
+		if (e.key === 'Enter' && step < sets.length - 1 && (e.target as HTMLElement).tagName === 'INPUT') {
+			e.preventDefault();
+			btnNext.click();
+		}
+	});
+	goStep(0);
+
+	/* ---------- envoi ---------- */
+	const api = (path: string, body: unknown, prefer?: string) =>
+		fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+			method: 'POST',
+			headers: {
+				apikey: SUPABASE_KEY,
+				Authorization: `Bearer ${SUPABASE_KEY}`,
+				'Content-Type': 'application/json',
+				...(prefer ? { Prefer: prefer } : {}),
+			},
+			body: JSON.stringify(body),
+		});
 
 	form.addEventListener('submit', async (e) => {
 		e.preventDefault();
-		errorEl.hidden = true;
-
-		if (!form.checkValidity()) {
-			const firstInvalid = form.querySelector(':invalid') as HTMLElement | null;
-			firstInvalid?.focus();
-			showError('Il manque des champs obligatoires (*), ou l’email n’est pas valide.');
-			return;
-		}
-
+		if (!validStep(step)) return;
 		const data = new FormData(form);
-		if (data.get('website')) return; // robot
+		if (data.get('website')) return;
 
 		const str = (k: string) => String(data.get(k) ?? '').trim() || null;
 		const payload = {
@@ -166,135 +484,858 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		};
 
 		if (!SUPABASE_URL || !SUPABASE_KEY) {
-			showError('Le formulaire n’est pas encore branché (configuration Supabase manquante).');
-			console.warn('PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_ANON_KEY manquants', payload);
+			showError(errorEl, '! Le formulaire n’est pas encore branché (configuration Supabase manquante).');
 			return;
 		}
 
-		submitBtn.disabled = true;
-		submitBtn.textContent = 'Envoi…';
-		try {
-			const res = await fetch(`${SUPABASE_URL}/rest/v1/beta_requests`, {
-				method: 'POST',
-				headers: {
-					apikey: SUPABASE_KEY,
-					Authorization: `Bearer ${SUPABASE_KEY}`,
-					'Content-Type': 'application/json',
-					Prefer: 'return=minimal',
-				},
-				body: JSON.stringify(payload),
-			});
+		const transmit = $('transmit'), line = $('transmit-line'), bar = $('transmit-bar');
+		form.hidden = true;
+		transmit.hidden = false;
+		const anim = (async () => {
+			const msgs = ['Chiffrement de la demande…', 'Transmission au Campus…', 'Enregistrement du pass…'];
+			for (let i = 0; i < msgs.length; i++) {
+				line.textContent = msgs[i];
+				bar.style.width = `${((i + 1) / msgs.length) * 100}%`;
+				await sleep(reduced ? 150 : 650);
+			}
+		})();
 
+		try {
+			const [res] = await Promise.all([api('beta_requests', payload, 'return=minimal'), anim]);
 			if (res.status === 409) {
-				showError('Cette adresse a déjà fait une demande. On revient vers toi très vite !');
+				transmit.hidden = true;
+				form.hidden = false;
+				showError(errorEl, '! Cette adresse a déjà fait une demande. Vérifie ton statut dans « Déjà inscrit ? ».');
 				return;
 			}
 			if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-			(document.getElementById('success-email') as HTMLElement).textContent = payload.email ?? '';
-			form.hidden = true;
-			successEl.hidden = false;
-			successEl.focus();
+			transmit.hidden = true;
+			$('done-name').textContent = payload.first_name ?? '';
+			$('done-email').textContent = payload.email ?? '';
+			$('done').hidden = false;
+			$('done').focus();
+			document.querySelector('.steps')?.classList.add('complete');
+			$('progress').style.width = '100%';
+			setStatus('pending', 'En attente de validation');
+			($('c-email') as HTMLInputElement).value = payload.email ?? '';
+			($('c-handle') as HTMLInputElement).value = payload.higgsfield_username ?? '';
 		} catch (err) {
 			console.error(err);
-			showError('Oups, l’envoi a échoué. Vérifie ta connexion et réessaie.');
+			transmit.hidden = true;
+			form.hidden = false;
+			showError(errorEl, '! L’envoi a échoué. Vérifie ta connexion et réessaie.');
+		}
+	});
+
+	/* ---------- vérification du statut ---------- */
+	const checkForm = $<HTMLFormElement>('check-form');
+	const result = $('result');
+	const higgsfield = (document.querySelector('.portal') as HTMLElement).dataset.higgsfield ?? '#';
+	checkForm.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const err = $('check-error');
+		err.hidden = true;
+		const bad = Array.from(checkForm.querySelectorAll('input')).find((i) => !i.checkValidity());
+		if (bad) { bad.focus(); showError(err, '! Renseigne ton email et ton pseudo Higgsfield.'); return; }
+		if (!SUPABASE_URL || !SUPABASE_KEY) { showError(err, '! Vérification indisponible (configuration Supabase manquante).'); return; }
+
+		const btn = $<HTMLButtonElement>('check-btn');
+		btn.disabled = true;
+		btn.firstChild!.textContent = 'Analyse… ';
+		result.hidden = true;
+		try {
+			const fd = new FormData(checkForm);
+			const [res] = await Promise.all([
+				api('rpc/beta_status', { p_email: String(fd.get('email')), p_pseudo: String(fd.get('handle')) }),
+				sleep(reduced ? 0 : 700),
+			]);
+			if (!res.ok) throw new Error(`HTTP ${res.status}`);
+			const status: string = await res.json();
+			const views: Record<string, [string, string, string]> = {
+				valide: ['ok', 'Accès ouvert', 'Ton compte est activé sur Higgsfield. Bienvenue au Village !'],
+				en_attente: ['wait', 'En attente de validation', 'On a bien ta demande, on la traite à la main. Tu recevras un mail.'],
+				refuse: ['no', 'Demande non retenue', 'On ne peut pas t’ouvrir l’accès pour cette bêta. Écris-nous si tu penses que c’est une erreur.'],
+				introuvable: ['none', 'Aucune demande trouvée', 'Vérifie l’email et le pseudo, ou fais une demande dans l’onglet « Demander l’accès ».'],
+			};
+			const [cls, title, text] = views[status] ?? views.introuvable;
+			result.className = `result ${cls}`;
+			result.innerHTML = `<p class="mono tiny">Statut</p><p class="r-title"><i></i></p><p class="r-text"></p>`;
+			(result.querySelector('.r-title') as HTMLElement).append(title);
+			(result.querySelector('.r-text') as HTMLElement).textContent = text;
+			if (status === 'valide') {
+				const a = document.createElement('a');
+				a.className = 'btn-enter';
+				a.href = higgsfield; a.target = '_blank'; a.rel = 'noopener';
+				a.innerHTML = '<span>Entrer dans le Village</span><b>↗</b>';
+				result.appendChild(a);
+				setStatus('valide', 'Accès validé');
+			} else if (status === 'en_attente') setStatus('pending', 'En attente de validation');
+			else if (status === 'refuse') setStatus('refuse', 'Non retenue');
+			(document.querySelector('.enter') as HTMLElement).hidden = status === 'valide';
+			result.hidden = false;
+		} catch (e2) {
+			console.error(e2);
+			showError(err, '! Vérification impossible pour le moment. Réessaie dans un instant.');
 		} finally {
-			submitBtn.disabled = false;
-			submitBtn.textContent = 'Envoyer ma demande';
+			btn.disabled = false;
+			btn.firstChild!.textContent = 'Vérifier mon accès ';
 		}
 	});
 </script>
 
 <style>
+	/* ================= BASE ================= */
+	:global(body) {
+		background: #04070f;
+	}
 	.portal {
-		display: grid;
-		grid-template-columns: 1fr 1.25fr;
-		gap: 56px;
-		padding-top: 72px;
-		align-items: start;
-	}
-	@media (max-width: 880px) {
-		.portal {
-			grid-template-columns: 1fr;
-			gap: 32px;
-			padding-top: 40px;
-		}
-	}
-	.side {
-		position: static;
-	}
-	@media (max-width: 880px) {
-		.side {
-			position: static;
-		}
-	}
-	.side-img {
-		border-radius: var(--radius);
+		--glass: #0b1530b3;
+		--edge: #8ec5ff3d;
+		--mono: 'JetBrains Mono', ui-monospace, monospace;
+		position: relative;
+		min-height: 100svh;
+		display: flex;
+		flex-direction: column;
 		overflow: hidden;
-		border: 1px solid #8ec5ff40;
-		margin-bottom: 32px;
-		aspect-ratio: 16 / 10;
+		isolation: isolate;
 	}
-	.side-img img {
+	.mono {
+		font-family: var(--mono);
+		letter-spacing: 0.08em;
+	}
+	.tiny {
+		font-size: 0.68rem;
+		text-transform: uppercase;
+		letter-spacing: 0.16em;
+		color: var(--ink-dim);
+		margin: 0;
+	}
+	.label {
+		font-size: 0.78rem;
+		color: var(--sky);
+		text-transform: uppercase;
+		margin: 0 0 18px;
+	}
+	.portal [hidden] {
+		display: none !important;
+	}
+	.sr {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+	}
+
+	/* ================= DÉCOR ================= */
+	.bg {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+	}
+	.bg-city {
+		position: absolute;
+		inset: 0;
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		object-position: 0% 50%;
+		object-position: 50% 25%;
+		opacity: 0.38;
+		filter: saturate(1.3) hue-rotate(-8deg);
+		transform: scale(1.06);
+		animation: drift 40s ease-in-out infinite alternate;
 	}
-	.side h1 {
-		font-size: clamp(2.2rem, 5vw, 3.4rem);
-		font-weight: 800;
-		margin-top: 10px;
-	}
-	.dim {
-		color: var(--ink-dim);
-	}
-	.checks {
-		list-style: none;
-		padding: 0;
-		margin: 24px 0;
-	}
-	.checks li {
-		padding: 6px 0 6px 28px;
-		position: relative;
-	}
-	.checks li::before {
-		content: '';
-		position: absolute;
-		left: 4px;
-		top: 50%;
-		width: 9px;
-		height: 9px;
-		margin-top: -4px;
-		border-radius: 50%;
-		background: var(--sky);
-		box-shadow: 0 0 10px var(--sky);
-	}
-	.already {
-		margin-top: 32px;
-		padding-top: 24px;
-		border-top: 1px solid var(--line);
-	}
-	.already p {
-		margin: 0 0 10px;
-	}
-
-	.card {
-		background: linear-gradient(180deg, var(--bg-3), var(--bg-2));
-		border: 1px solid #8ec5ff30;
-		border-radius: var(--radius);
-		box-shadow: 0 40px 80px -40px #000;
-		padding: 32px;
-	}
-	@media (max-width: 520px) {
-		.card {
-			padding: 22px 18px;
+	@keyframes drift {
+		to {
+			transform: scale(1.14) translate(-1.5%, -1%);
 		}
 	}
-	form {
+	.bg-floor {
+		position: absolute;
+		left: -50%;
+		right: -50%;
+		bottom: -10%;
+		height: 62%;
+		perspective: 420px;
+		mask-image: linear-gradient(180deg, transparent, #000 30%);
+	}
+	.bg-grid {
+		position: absolute;
+		inset: 0;
+		transform: rotateX(68deg);
+		transform-origin: 50% 0;
+		background-image: linear-gradient(#3b82f655 1px, transparent 1px),
+			linear-gradient(90deg, #3b82f655 1px, transparent 1px);
+		background-size: 64px 64px;
+		animation: grid 3.5s linear infinite;
+	}
+	@keyframes grid {
+		to {
+			background-position: 0 64px;
+		}
+	}
+	.bg-particles {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
+	.bg-beam {
+		position: absolute;
+		left: 50%;
+		top: -20%;
+		width: 60vw;
+		height: 90%;
+		transform: translateX(-50%);
+		background: radial-gradient(ellipse at 50% 0%, #3b82f640, transparent 65%);
+	}
+	.bg-scan {
+		position: absolute;
+		inset: 0;
+		background: repeating-linear-gradient(180deg, #ffffff06 0 1px, transparent 1px 3px);
+		mix-blend-mode: overlay;
+	}
+	.bg-scan::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		height: 140px;
+		background: linear-gradient(180deg, transparent, #8ec5ff14, transparent);
+		animation: sweep 7s linear infinite;
+	}
+	@keyframes sweep {
+		from {
+			top: -140px;
+		}
+		to {
+			top: 100%;
+		}
+	}
+	.bg-vignette {
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(ellipse 85% 75% at 50% 45%, transparent 35%, #04070fee 100%);
+	}
+
+	/* ================= HUD ================= */
+	.hud {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		padding: 18px clamp(16px, 4vw, 40px);
+	}
+	.hud-top {
+		border-bottom: 1px solid #8ec5ff1a;
+		background: linear-gradient(180deg, #04070fcc, transparent);
+	}
+	.hud-brand {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		text-decoration: none;
+		font-weight: 600;
+		font-size: 0.86rem;
+		letter-spacing: 0.26em;
+		text-transform: uppercase;
+	}
+	.hud-brand img {
+		border-radius: 9px;
+		box-shadow: 0 0 20px #3b82f666;
+	}
+	.hud-center {
+		margin: 0;
+		font-size: 0.74rem;
+		text-transform: uppercase;
+		letter-spacing: 0.3em;
+		color: var(--sky);
+	}
+	.blink {
+		animation: blink 1.4s steps(2) infinite;
+	}
+	@keyframes blink {
+		50% {
+			opacity: 0.2;
+		}
+	}
+	.hud-right {
+		display: flex;
+		gap: 18px;
+		font-size: 0.72rem;
+		color: var(--ink-dim);
+		text-transform: uppercase;
+	}
+	.sys {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.dot {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--online);
+		box-shadow: 0 0 10px var(--online);
+		animation: blink 2s ease-in-out infinite;
+	}
+	#clock {
+		color: var(--ink);
+		min-width: 8ch;
+		text-align: right;
+	}
+	.hud-bottom {
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		color: var(--ink-dim);
+		border-top: 1px solid #8ec5ff14;
+		flex-wrap: wrap;
+	}
+	.hud-bottom a {
+		text-decoration: none;
+	}
+	.hud-bottom a:hover {
+		color: var(--sky);
+	}
+	@media (max-width: 900px) {
+		.hud-center,
+		.sys {
+			display: none;
+		}
+	}
+	@media (max-width: 520px) {
+		.hud-brand span {
+			display: none;
+		}
+		.hud-bottom {
+			justify-content: center;
+		}
+	}
+
+	/* ================= SCÈNE ================= */
+	.stage {
+		flex: 1;
+		display: grid;
+		grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+		gap: clamp(28px, 5vw, 80px);
+		align-items: center;
+		width: 100%;
+		max-width: 1240px;
+		margin: 0 auto;
+		padding: clamp(24px, 5vh, 56px) clamp(16px, 4vw, 40px);
+	}
+	@media (max-width: 960px) {
+		.stage {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+
+	/* ================= PASS ================= */
+	.pass-col {
 		display: flex;
 		flex-direction: column;
+		align-items: center;
+		text-align: center;
+	}
+	.pass-wrap {
+		position: relative;
+		width: 100%;
+		display: grid;
+		place-items: center;
+		padding: 40px 0;
+		perspective: 1100px;
+	}
+	.rings {
+		position: absolute;
+		width: min(560px, 120%);
+		aspect-ratio: 1;
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
+		fill: none;
+		pointer-events: none;
+	}
+	.rings circle {
+		transform-origin: 300px 300px;
+		stroke: #8ec5ff;
+	}
+	.r1 {
+		stroke-opacity: 0.25;
+		stroke-width: 1;
+		stroke-dasharray: 2 10;
+		animation: spin 60s linear infinite;
+	}
+	.r2 {
+		stroke-opacity: 0.35;
+		stroke-width: 1.5;
+		stroke-dasharray: 120 30 8 30;
+		animation: spin 28s linear infinite reverse;
+	}
+	.r3 {
+		stroke: #3b82f6;
+		stroke-opacity: 0.5;
+		stroke-width: 2;
+		stroke-dasharray: 60 260;
+		animation: spin 9s linear infinite;
+		filter: drop-shadow(0 0 6px #3b82f6);
+	}
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.pass {
+		--rx: 0deg;
+		--ry: 0deg;
+		--mx: 50%;
+		--my: 30%;
+		--state: #8ec5ff;
+		position: relative;
+		width: min(400px, 100%);
+		aspect-ratio: 1.55 / 2;
+		max-height: 560px;
+		padding: 26px;
+		border-radius: 26px;
+		text-align: left;
+		display: flex;
+		flex-direction: column;
+		background: linear-gradient(155deg, #16285099 0%, #0a1430e6 55%, #060c1ef2 100%);
+		border: 1px solid #8ec5ff55;
+		box-shadow: 0 0 0 1px #ffffff0d inset, 0 30px 80px -20px #000, 0 0 60px -10px #3b82f688;
+		backdrop-filter: blur(16px);
+		transform: rotateX(var(--rx)) rotateY(var(--ry));
+		transform-style: preserve-3d;
+		transition: transform 0.2s ease-out, box-shadow 0.4s;
+		animation: float 6s ease-in-out infinite;
+		overflow: hidden;
+	}
+	@keyframes float {
+		50% {
+			translate: 0 -10px;
+		}
+	}
+	.pass[data-state='pending'] {
+		--state: #f5b84b;
+	}
+	.pass[data-state='valide'] {
+		--state: #34c76f;
+		box-shadow: 0 0 0 1px #ffffff0d inset, 0 30px 80px -20px #000, 0 0 80px -6px #34c76f88;
+	}
+	.pass[data-state='refuse'] {
+		--state: #ff8a7a;
+	}
+	.pass-sheen {
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(circle at var(--mx) var(--my), #8ec5ff30, transparent 45%),
+			linear-gradient(115deg, transparent 30%, #ffffff12 45%, #e98a6b14 50%, transparent 62%);
+		background-size: 100% 100%, 250% 100%;
+		animation: sheen 6s ease-in-out infinite;
+		pointer-events: none;
+	}
+	@keyframes sheen {
+		0%,
+		100% {
+			background-position: 0 0, 120% 0;
+		}
+		50% {
+			background-position: 0 0, -20% 0;
+		}
+	}
+	.pass > *:not(.pass-sheen) {
+		position: relative;
+		transform: translateZ(30px);
+	}
+	.pass-top {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.22em;
+	}
+	.pass-top img {
+		border-radius: 7px;
+	}
+	.pass-tag {
+		margin-left: auto;
+		padding: 3px 9px;
+		border: 1px solid var(--sky);
+		border-radius: 999px;
+		color: var(--sky);
+		font-size: 0.62rem;
+	}
+	.pass-holo {
+		flex: 1;
+		position: relative;
+		display: grid;
+		place-items: center;
+		min-height: 120px;
+		margin: 10px 0;
+	}
+	.pass-holo img {
+		width: 46%;
+		max-width: 150px;
+		border-radius: 22%;
+		opacity: 0.85;
+		mix-blend-mode: screen;
+		filter: drop-shadow(0 0 24px #3b82f6) saturate(1.3);
+		mask-image: repeating-linear-gradient(180deg, #000 0 2px, #0008 2px 4px);
+		animation: holo 4s ease-in-out infinite;
+	}
+	@keyframes holo {
+		0%, 100% { transform: translateY(0); opacity: 0.85; }
+		47% { opacity: 0.85; }
+		50% { opacity: 0.4; transform: translateY(-4px) skewX(-4deg); }
+		53% { opacity: 0.85; }
+		70% { transform: translateY(-8px); }
+	}
+	.holo-scan {
+		position: absolute;
+		left: 20%;
+		right: 20%;
+		height: 2px;
+		background: linear-gradient(90deg, transparent, var(--sky), transparent);
+		box-shadow: 0 0 12px var(--sky);
+		animation: holoScan 3s ease-in-out infinite;
+	}
+	@keyframes holoScan {
+		0%, 100% { top: 12%; opacity: 0; }
+		15%, 85% { opacity: 1; }
+		50% { top: 82%; }
+	}
+	.holo-base {
+		position: absolute;
+		bottom: 0;
+		width: 60%;
+		height: 18px;
+		border-radius: 50%;
+		border: 1px solid #8ec5ff66;
+		background: radial-gradient(ellipse, #3b82f655, transparent 70%);
+		box-shadow: 0 0 30px #3b82f655;
+	}
+	.pass-id {
+		display: flex;
+		align-items: center;
 		gap: 18px;
+	}
+	.avatar {
+		flex: none;
+		width: 78px;
+		height: 78px;
+		border-radius: 50%;
+		display: grid;
+		place-items: center;
+		padding: 3px;
+		background: conic-gradient(from 0deg, var(--sky), var(--blue), var(--sunset), var(--sky));
+		animation: spin 8s linear infinite;
+	}
+	.avatar span {
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+		display: grid;
+		place-items: center;
+		background: #0a1430;
+		font-family: var(--font-display);
+		font-weight: 800;
+		font-size: 1.6rem;
+		animation: spin 8s linear infinite reverse;
+	}
+	.pass-who {
+		min-width: 0;
+	}
+	.pass-who p {
+		margin: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.pass-name {
+		font-family: var(--font-display);
+		font-weight: 800;
+		font-size: 1.55rem;
+		letter-spacing: -0.02em;
+		line-height: 1.15;
+	}
+	.pass-role {
+		color: var(--ink-dim);
+		font-size: 0.92rem;
+	}
+	.pass-handle {
+		color: var(--sky);
+		font-size: 0.8rem;
+		margin-top: 4px !important;
+	}
+	.pass-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin: 22px 0;
+	}
+	.chip {
+		padding: 5px 12px;
+		border-radius: 999px;
+		background: #ffffff0d;
+		border: 1px solid #ffffff1f;
+		font-size: 0.78rem;
+		color: #d6deea;
+	}
+	.pass-bottom {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 12px;
+		padding-top: 18px;
+		border-top: 1px dashed #8ec5ff40;
+	}
+	.status {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 4px 0 8px;
+		font-weight: 600;
+		color: var(--state);
+		transition: color 0.4s;
+	}
+	.status i {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--state);
+		box-shadow: 0 0 10px var(--state);
+		animation: blink 1.6s ease-in-out infinite;
+	}
+	.code {
+		color: #8ec5ffaa;
+	}
+	.qr {
+		width: 66px;
+		height: 66px;
+		padding: 6px;
+		border-radius: 10px;
+		background: #e9f2ff;
+		color: #0a1430;
+		fill: #0a1430;
+		flex: none;
+	}
+	.pass-hint {
+		margin: 4px 0 0;
+		color: var(--ink-dim);
+		font-size: 0.88rem;
+		max-width: 340px;
+	}
+	@media (max-width: 960px) {
+		.pass-wrap {
+			padding: 14px 0;
+		}
+		.pass {
+			aspect-ratio: auto;
+			min-height: 0;
+		}
+		.pass-holo {
+			display: none;
+		}
+		.pass-id {
+			margin-top: 24px;
+		}
+		.rings {
+			width: 420px;
+		}
+	}
+
+	/* ================= CONSOLE ================= */
+	.console {
+		position: relative;
+		padding: clamp(22px, 3.5vw, 40px);
+		background: linear-gradient(180deg, #0e1b3ccc, #070f24e6);
+		border: 1px solid var(--edge);
+		border-radius: 8px;
+		backdrop-filter: blur(20px) saturate(1.2);
+		box-shadow: 0 0 0 1px #ffffff08 inset, 0 40px 120px -40px #000, 0 0 80px -30px #3b82f6aa;
+		clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px));
+		animation: rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	}
+	@keyframes rise {
+		from {
+			opacity: 0;
+			transform: translateY(24px) scale(0.98);
+		}
+	}
+	.corner {
+		position: absolute;
+		width: 22px;
+		height: 22px;
+		border: 2px solid var(--sky);
+		filter: drop-shadow(0 0 6px #3b82f6);
+	}
+	.corner.tl {
+		top: 10px;
+		left: 10px;
+		border-right: 0;
+		border-bottom: 0;
+	}
+	.corner.tr {
+		top: 10px;
+		right: 36px;
+		border-left: 0;
+		border-bottom: 0;
+		width: 12px;
+	}
+	.corner.bl {
+		bottom: 10px;
+		left: 36px;
+		border-right: 0;
+		border-top: 0;
+		width: 12px;
+	}
+	.corner.br {
+		bottom: 10px;
+		right: 10px;
+		border-left: 0;
+		border-top: 0;
+	}
+
+	.boot {
+		min-height: 3.6em;
+		font-size: 0.72rem;
+		color: #8ec5ffb3;
+		margin-bottom: 18px;
+	}
+	.boot :global(p) {
+		margin: 0;
+		line-height: 1.2em;
+	}
+	.boot :global(b) {
+		color: var(--online);
+		font-weight: 500;
+	}
+
+	/* onglets */
+	.tabs {
+		position: relative;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		padding: 4px;
+		border-radius: 12px;
+		background: #04070f99;
+		border: 1px solid #8ec5ff26;
+		margin-bottom: 28px;
+	}
+	.tabs button {
+		position: relative;
+		z-index: 1;
+		border: 0;
+		background: none;
+		color: var(--ink-dim);
+		font: 600 0.95rem var(--font-body);
+		padding: 12px 10px;
+		cursor: pointer;
+		transition: color 0.25s;
+	}
+	.tabs button[aria-selected='true'] {
+		color: #fff;
+	}
+	.tabs button:focus-visible {
+		outline: 2px solid var(--sky);
+		outline-offset: -2px;
+		border-radius: 9px;
+	}
+	.tab-ink {
+		position: absolute;
+		top: 4px;
+		bottom: 4px;
+		left: 4px;
+		width: calc(50% - 4px);
+		border-radius: 9px;
+		background: linear-gradient(180deg, #3b82f6, #2563eb);
+		box-shadow: 0 0 24px #3b82f6aa;
+		transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+	}
+	.tabs[data-active='log'] .tab-ink {
+		transform: translateX(100%);
+	}
+
+	/* étapes */
+	.steps {
+		display: flex;
+		gap: 6px;
+		list-style: none;
+		padding: 0;
+		margin: 0 0 12px;
+		align-items: center;
+		font-size: 0.7rem;
+		text-transform: uppercase;
+	}
+	.steps li {
+		flex: 1;
+		min-width: 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		color: #a6b1c488;
+		transition: color 0.3s;
+	}
+	.steps li b {
+		font-weight: 700;
+		margin-right: 6px;
+		color: inherit;
+	}
+	.steps li.on {
+		color: var(--sky);
+	}
+	.steps li.done,
+	.steps.complete li {
+		color: var(--online);
+	}
+	.progress {
+		height: 3px;
+		border-radius: 3px;
+		background: #ffffff12;
+		overflow: hidden;
+		margin-bottom: 28px;
+	}
+	.progress span {
+		display: block;
+		height: 100%;
+		width: 0;
+		background: linear-gradient(90deg, var(--sky), var(--blue), var(--sunset));
+		box-shadow: 0 0 12px var(--blue);
+		transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+	}
+
+	/* champs */
+	fieldset {
+		border: 0;
+		padding: 0;
+		margin: 0;
+		min-width: 0;
+		display: none;
+		flex-direction: column;
+		gap: 20px;
+	}
+	fieldset.on {
+		display: flex;
+		animation: stepIn 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+	}
+	@keyframes stepIn {
+		from {
+			opacity: 0;
+			transform: translateX(18px);
+		}
+	}
+	fieldset.shake {
+		animation: shake 0.4s;
+	}
+	@keyframes shake {
+		25% {
+			transform: translateX(-6px);
+		}
+		75% {
+			transform: translateX(6px);
+		}
 	}
 	.row {
 		display: grid;
@@ -302,88 +1343,420 @@ const higgsfieldUrl = import.meta.env.PUBLIC_HIGGSFIELD_URL || 'https://higgsfie
 		gap: 16px;
 	}
 	@media (max-width: 520px) {
+		.steps {
+			font-size: 0.62rem;
+		}
+		.boot {
+			display: none;
+		}
 		.row {
 			grid-template-columns: 1fr;
+			gap: 20px;
 		}
 	}
-	label {
+	.field {
+		position: relative;
 		display: flex;
 		flex-direction: column;
-		gap: 6px;
-		font-size: 0.92rem;
-		font-weight: 500;
 	}
-	input,
-	select,
-	textarea {
-		font: inherit;
-		font-weight: 400;
-		font-size: 1rem;
-		color: var(--ink);
-		background: var(--bg);
-		border: 1px solid var(--line);
-		border-radius: 10px;
-		padding: 12px 14px;
+	.field input,
+	.field textarea {
 		width: 100%;
+		font: 400 1.02rem var(--font-body);
+		color: var(--ink);
+		background: #04070f8c;
+		border: 1px solid #8ec5ff2e;
+		border-radius: 10px;
+		padding: 24px 16px 10px;
+		transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 	}
-	textarea {
+	.field textarea {
 		resize: vertical;
+		min-height: 120px;
 	}
-	input:focus,
-	select:focus,
-	textarea:focus {
+	.field label {
+		position: absolute;
+		left: 17px;
+		top: 17px;
+		font-size: 1rem;
+		color: var(--ink-dim);
+		pointer-events: none;
+		transform-origin: 0 0;
+		transition: transform 0.2s, color 0.2s, top 0.2s;
+	}
+	.field label em {
+		font-style: normal;
+		opacity: 0.6;
+	}
+	.field input:focus + label,
+	.field input:not(:placeholder-shown) + label,
+	.field textarea:focus + label,
+	.field textarea:not(:placeholder-shown) + label {
+		top: 8px;
+		transform: scale(0.74);
+		color: var(--sky);
+		font-family: var(--mono);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+	.field input:focus,
+	.field textarea:focus {
 		outline: none;
 		border-color: var(--sky);
-		box-shadow: 0 0 0 3px var(--blue-soft);
+		background: #0a1430cc;
+		box-shadow: 0 0 0 4px #3b82f626, 0 0 30px -6px #3b82f6aa;
 	}
-	small {
+	.field input:not(:placeholder-shown):valid,
+	.field textarea:not(:placeholder-shown):valid {
+		border-color: #34c76f55;
+	}
+	.field small {
+		margin-top: 8px;
 		color: var(--ink-dim);
-		font-weight: 400;
 		font-size: 0.82rem;
+	}
+	.field small a {
+		color: var(--sky);
+	}
+	.count {
+		align-self: flex-end;
+		font-size: 0.7rem !important;
+	}
+	.q {
+		margin: 0 0 -8px;
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		color: var(--sky);
+	}
+
+	/* stades */
+	.stages {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+		gap: 10px;
+	}
+	.stage-opt {
+		position: relative;
+		cursor: pointer;
+	}
+	.stage-opt input {
+		position: absolute;
+		opacity: 0;
+		inset: 0;
+		cursor: pointer;
+	}
+	.stage-opt span {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		height: 100%;
+		padding: 14px;
+		border-radius: 10px;
+		border: 1px solid #8ec5ff2e;
+		background: #04070f8c;
+		font-size: 0.78rem;
+		color: var(--ink-dim);
+		transition: all 0.2s;
+	}
+	.stage-opt b {
+		font-family: var(--font-display);
+		font-size: 1rem;
+		color: var(--ink);
+	}
+	.stage-opt:hover span {
+		border-color: #8ec5ff77;
+	}
+	.stage-opt input:checked + span {
+		border-color: var(--sky);
+		background: linear-gradient(180deg, #3b82f633, #3b82f611);
+		box-shadow: 0 0 0 1px var(--sky) inset, 0 0 24px -4px #3b82f6aa;
+		color: #d6deea;
+	}
+	.stage-opt input:focus-visible + span {
+		outline: 2px solid var(--sky);
+		outline-offset: 2px;
+	}
+
+	/* consentement */
+	.consent {
+		position: relative;
+		display: flex;
+		gap: 14px;
+		align-items: flex-start;
+		font-size: 0.86rem;
+		color: var(--ink-dim);
+		cursor: pointer;
+	}
+	.consent input {
+		position: absolute;
+		opacity: 0;
+		width: 20px;
+		height: 20px;
+	}
+	.consent .box {
+		flex: none;
+		width: 20px;
+		height: 20px;
+		margin-top: 1px;
+		border-radius: 5px;
+		border: 1px solid #8ec5ff66;
+		background: #04070f8c;
+		display: grid;
+		place-items: center;
+		transition: all 0.2s;
+	}
+	.consent input:checked + .box {
+		background: var(--blue);
+		border-color: var(--sky);
+		box-shadow: 0 0 14px #3b82f6aa;
+	}
+	.consent input:checked + .box::after {
+		content: '✓';
+		color: #fff;
+		font-size: 0.8rem;
+		font-weight: 700;
+	}
+	.consent input:focus-visible + .box {
+		outline: 2px solid var(--sky);
+		outline-offset: 2px;
+	}
+	.consent a {
+		color: var(--sky);
 	}
 	.hp {
 		position: absolute;
 		left: -9999px;
 	}
-	.consent {
-		flex-direction: row;
-		align-items: flex-start;
-		gap: 12px;
-		font-weight: 400;
-		color: var(--ink-dim);
-		font-size: 0.88rem;
-	}
-	.consent input {
-		width: 18px;
-		height: 18px;
-		margin-top: 3px;
-		flex: none;
-		accent-color: var(--sky);
-	}
+
 	.error {
-		margin: 0;
+		margin: 18px 0 0;
+		padding: 10px 14px;
+		border-left: 2px solid var(--danger);
+		background: #ff8a7a14;
 		color: var(--danger);
-		font-size: 0.92rem;
-	}
-	.submit {
-		align-self: flex-start;
+		font-size: 0.8rem;
 	}
 
-	.success {
-		text-align: center;
-		padding: 24px 8px;
-		outline: none;
+	/* boutons */
+	.actions {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin-top: 28px;
 	}
-	.success p {
+	.btn-go {
+		margin-left: auto;
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		padding: 16px 28px;
+		border: 0;
+		border-radius: 10px;
+		cursor: pointer;
+		color: #fff;
+		font: 700 1rem var(--font-display);
+		background: linear-gradient(180deg, #4b8ff8, #2563eb);
+		box-shadow: 0 0 0 1px #8ec5ff66 inset, 0 10px 40px -8px #3b82f6;
+		overflow: hidden;
+		transition: transform 0.15s, box-shadow 0.25s;
+	}
+	.btn-go::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(110deg, transparent 30%, #ffffff40 50%, transparent 70%);
+		transform: translateX(-100%);
+		transition: transform 0.6s;
+	}
+	.btn-go:hover::before {
+		transform: translateX(100%);
+	}
+	.btn-go:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 0 0 1px #8ec5ff inset, 0 14px 50px -6px #3b82f6;
+	}
+	.btn-go span {
+		transition: transform 0.2s;
+	}
+	.btn-go:hover span {
+		transform: translateX(4px);
+	}
+	.btn-go:disabled {
+		opacity: 0.7;
+		cursor: wait;
+	}
+	.btn-go:focus-visible,
+	.btn-back:focus-visible,
+	.btn-enter:focus-visible,
+	.btn-ghost-hud:focus-visible {
+		outline: 2px solid var(--sky);
+		outline-offset: 3px;
+	}
+	.btn-back,
+	.btn-ghost-hud {
+		border: 1px solid #8ec5ff33;
+		background: transparent;
+		color: var(--ink-dim);
+		padding: 14px 20px;
+		border-radius: 10px;
+		font: 500 0.95rem var(--font-body);
+		cursor: pointer;
+	}
+	.btn-back:hover,
+	.btn-ghost-hud:hover {
+		color: var(--ink);
+		border-color: var(--sky);
+	}
+
+	/* transmission */
+	.transmit {
+		text-align: center;
+		padding: 40px 0 20px;
+	}
+	.transmit .progress {
+		max-width: 320px;
+		margin: 18px auto 0;
+	}
+	.transmit p {
+		margin: 0;
+		color: var(--sky);
+		font-size: 0.82rem;
+		text-transform: uppercase;
+	}
+	.orb {
+		width: 90px;
+		height: 90px;
+		margin: 0 auto 26px;
+		border-radius: 50%;
+		border: 2px solid transparent;
+		border-top-color: var(--sky);
+		border-right-color: var(--blue);
+		box-shadow: 0 0 40px #3b82f688, inset 0 0 30px #3b82f644;
+		animation: spin 0.9s linear infinite;
+	}
+
+	/* succès */
+	.done {
+		padding: 10px 0;
+		outline: none;
+		animation: stepIn 0.5s;
+	}
+	.done .ok {
+		color: var(--online);
+	}
+	.done h2 {
+		font-size: clamp(1.8rem, 3.6vw, 2.4rem);
+	}
+	.done p {
+		color: var(--ink-dim);
+		margin: 0 0 26px;
+	}
+
+	/* connexion */
+	.intro {
 		color: var(--ink-dim);
 		margin: 0 0 24px;
 	}
-	.lantern {
-		width: 22px;
-		height: 22px;
-		margin: 0 auto 22px;
+	#check-form {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+	#check-form .actions {
+		margin-top: 8px;
+	}
+	.result {
+		--c: var(--sky);
+		margin-top: 26px;
+		padding: 20px 22px;
+		border-radius: 12px;
+		border: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
+		background: color-mix(in srgb, var(--c) 9%, transparent);
+		animation: stepIn 0.4s;
+	}
+	.result.ok {
+		--c: #34c76f;
+	}
+	.result.wait {
+		--c: #f5b84b;
+	}
+	.result.no {
+		--c: #ff8a7a;
+	}
+	.result.none {
+		--c: #a6b1c4;
+	}
+	.result :global(.tiny) {
+		font-family: var(--mono);
+		font-size: 0.68rem;
+		text-transform: uppercase;
+		letter-spacing: 0.16em;
+		color: var(--ink-dim);
+		margin: 0;
+	}
+	.result :global(.r-title) {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin: 6px 0 6px;
+		font-family: var(--font-display);
+		font-weight: 800;
+		font-size: 1.35rem;
+		color: var(--c);
+	}
+	.result :global(.r-title i) {
+		width: 10px;
+		height: 10px;
 		border-radius: 50%;
-		background: var(--online);
-		box-shadow: 0 0 40px 12px #3b82f677;
+		background: var(--c);
+		box-shadow: 0 0 12px var(--c);
+	}
+	.result :global(.r-text) {
+		margin: 0;
+		color: #d6deea;
+	}
+	.result :global(.btn-enter) {
+		margin-top: 18px;
+	}
+	.enter {
+		margin-top: 34px;
+		padding-top: 24px;
+		border-top: 1px dashed #8ec5ff33;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		flex-wrap: wrap;
+	}
+	.btn-enter,
+	:global(.btn-enter) {
+		display: inline-flex;
+		align-items: center;
+		gap: 14px;
+		padding: 14px 22px;
+		border-radius: 10px;
+		text-decoration: none;
+		font: 700 1rem var(--font-display);
+		color: #04170c;
+		background: linear-gradient(180deg, #5ee08f, #2fb864);
+		box-shadow: 0 0 30px -4px #34c76faa;
+		transition: transform 0.15s, box-shadow 0.25s;
+	}
+	.btn-enter:hover,
+	:global(.btn-enter:hover) {
+		transform: translateY(-1px);
+		box-shadow: 0 0 44px -2px #34c76fcc;
+	}
+
+	/* mouvement réduit */
+	@media (prefers-reduced-motion: reduce) {
+		.portal *,
+		.portal *::before,
+		.portal *::after {
+			animation: none !important;
+			transition: none !important;
+		}
 	}
 </style>

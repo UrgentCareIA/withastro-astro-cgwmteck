@@ -58,3 +58,24 @@ create or replace view public.beta_a_traiter
   from public.beta_requests
   where status = 'en_attente'
   order by created_at;
+
+-- Onglet « Déjà inscrit ? » : renvoie seulement le statut d'une demande,
+-- et seulement si l'email ET le pseudo Higgsfield correspondent.
+-- Ne renvoie aucune autre donnée.
+create or replace function public.beta_status(p_email text, p_pseudo text)
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    (select status from public.beta_requests
+      where email = lower(trim(p_email))
+        and lower(higgsfield_username) = lower(ltrim(trim(p_pseudo), '@'))
+      limit 1),
+    'introuvable');
+$$;
+
+revoke all on function public.beta_status(text, text) from public;
+grant execute on function public.beta_status(text, text) to anon;

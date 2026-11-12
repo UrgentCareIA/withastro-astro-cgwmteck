@@ -4,10 +4,13 @@ import '../styles/global.css';
 interface Props {
 	title?: string;
 	description?: string;
+	/** page plein écran, sans menu ni pied de page (portail) */
+	bare?: boolean;
 }
 
 const {
 	title = 'Le Village Tech — le siège social numérique de ton entreprise',
+	bare = false,
 	description = "Le Village Tech est un monde en 3D où ton équipe travaille, se croise et se parle, comme au bureau, sans le trajet. Bêta gratuite : demande ton accès.",
 } = Astro.props;
 ---
@@ -30,11 +33,12 @@ const {
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Space+Grotesk:wght@400;500;600&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap"
 			rel="stylesheet"
 		/>
 	</head>
 	<body>
+		{!bare && (
 		<header class="nav">
 			<a href="/" class="brand" aria-label="Le Village Tech, accueil">
 				<img src="/images/logo.png" alt="" width="36" height="36" />
@@ -47,12 +51,15 @@ const {
 				<a href="/acces" class="btn btn-small">Portail d'accès</a>
 			</nav>
 		</header>
+		)}
 		<main>
 			<slot />
 		</main>
+		{!bare && (
 		<footer class="footer">
 			<a href="/" class="brand"><img src="/images/logo.png" alt="" width="28" height="28" /> Le Village Tech</a>
 			<p>Bêta gratuite · <a href="/confidentialite">Confidentialité</a></p>
 		</footer>
+		)}
 	</body>
 </html>
