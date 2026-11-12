@@ -42,8 +42,32 @@ const faq = [
 			</p>
 			<div class="cta-row">
 				<a href="/acces" class="btn">Demander mon accès bêta →</a>
-				<a href="#visite" class="btn-ghost">Visite guidée</a>
+				<a href="#film" class="btn-ghost">▶ Voir le film · 1:42</a>
 			</div>
+		</div>
+	</section>
+
+	<!-- FILM -->
+	<section id="film" class="section wrap">
+		<p class="eyebrow">Le film</p>
+		<h2>Un vrai Campus, en ligne.</h2>
+		<p class="dim section-lede">Des bâtiments, des salles, des gens. Tout est en 3D. Le tour complet en moins de 2 minutes.</p>
+		<div class="film">
+			<video
+				id="film-video"
+				src="/video/village-tech.mp4"
+				poster="/video/poster.jpg"
+				controls
+				playsinline
+				preload="none"
+				width="848"
+				height="480"
+			>
+				Ton navigateur ne lit pas la vidéo. <a href="/video/village-tech.mp4">Télécharge-la ici</a>.
+			</video>
+			<button class="film-play" id="film-play" aria-label="Lire le film de présentation">
+				<span>▶</span>
+			</button>
 		</div>
 	</section>
 
@@ -159,6 +183,14 @@ const faq = [
 </Layout>
 
 <script>
+	const video = document.getElementById('film-video') as HTMLVideoElement;
+	const playBtn = document.getElementById('film-play') as HTMLButtonElement;
+	playBtn.addEventListener('click', () => {
+		playBtn.hidden = true;
+		video.play().catch(() => {});
+	});
+	video.addEventListener('play', () => (playBtn.hidden = true));
+
 	const track = document.getElementById('carousel') as HTMLElement;
 	const cur = document.getElementById('cur') as HTMLElement;
 	const dots = document.querySelectorAll('.dots span');
@@ -249,6 +281,58 @@ const faq = [
 	}
 	.section-lede {
 		max-width: 620px;
+	}
+
+	/* film */
+	.film {
+		position: relative;
+		margin-top: 36px;
+		border-radius: 28px;
+		overflow: hidden;
+		border: 1px solid #8ec5ff40;
+		box-shadow: 0 40px 100px -40px #3b82f677;
+		background: #000;
+		aspect-ratio: 848 / 480;
+	}
+	.film video {
+		width: 100%;
+		height: 100%;
+		display: block;
+		object-fit: cover;
+	}
+	.film-play {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 0;
+		background: radial-gradient(circle at 50% 50%, #080e1c33, #080e1c88);
+		cursor: pointer;
+	}
+	.film-play span {
+		width: 88px;
+		height: 88px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding-left: 6px;
+		font-size: 1.8rem;
+		color: #fff;
+		background: linear-gradient(180deg, #4b8ff8, var(--blue-2));
+		box-shadow: 0 0 0 10px #3b82f633, 0 10px 40px #3b82f6aa;
+		transition: transform 0.2s;
+	}
+	.film-play:hover span {
+		transform: scale(1.06);
+	}
+	.film-play:focus-visible span {
+		outline: 2px solid var(--sky);
+		outline-offset: 6px;
+	}
+	.film-play[hidden] {
+		display: none;
 	}
 
 	/* carrousel */
