@@ -49,3 +49,13 @@ node render2.cjs "$PWD" "$PWD/out/billet-4x5.mp4"
 ```
 
 Pour changer les infos du billet : attributs `data-f` (texte) et `data-t` (moment d'apparition) dans `billet.html`.
+
+## Teaser v3 « Viens chercher ton billet » (23,5 s) — version retenue
+
+Fond violet uni, sans photo : intro hyperespace + logo, « La bêta est lancée ! » en typo,
+le Village Pass qui se remplit (sans personnage), la carte d'embarquement, le tableau des départs, la fin.
+
+```sh
+python3 music3.py out/music3.wav
+node render3.cjs "$PWD" "$PWD/out/village-billet-4x5.mp4"
+```
