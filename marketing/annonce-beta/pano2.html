@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carrousel panoramique v2</title>
+<style>
+@font-face { font-family: 'Grotesk'; font-weight: 600; src: url(a/space-grotesk-latin-600-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Script'; src: url(a/kaushan-script-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Jakarta'; font-weight: 800; src: url(a/plus-jakarta-sans-latin-800-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Mono'; font-weight: 600; src: url(a/jetbrains-mono-latin-600-normal.woff2) format('woff2'); }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 5400px; height: 1350px; overflow: hidden; }
+#pano { position: relative; width: 5400px; height: 1350px; overflow: hidden; color: #fff; font-family: 'Grotesk', sans-serif; background: url(pano2/sky.jpg) center / cover; }
+.abs { position: absolute; }
+.polaroid { position: absolute; background: #fbfaff; padding: 22px 22px 96px; box-shadow: 0 34px 60px -24px #2a1a70cc, 0 4px 10px #1a166044; }
+.polaroid img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.polaroid .cap { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; font: 400 44px 'Script'; color: #3a2fa6; }
+.tape { position: absolute; height: 64px; background: linear-gradient(180deg, #ffd6ecdd, #ffc2e0cc); box-shadow: 0 2px 6px #1a166033;
+	clip-path: polygon(0 0, 4% 12%, 0 25%, 4% 38%, 0 50%, 4% 62%, 0 75%, 4% 88%, 0 100%, 100% 100%, 96% 88%, 100% 75%, 96% 62%, 100% 50%, 96% 38%, 100% 25%, 96% 12%, 100% 0); }
+.tape.blue { background: linear-gradient(180deg, #c9d8ffdd, #b3c8ffcc); }
+.note { position: absolute; font: 400 52px 'Script'; color: #fff; text-shadow: 0 2px 14px #3a2fa6aa; }
+.stamp { position: absolute; width: 230px; height: 230px; border-radius: 50%; border: 6px solid #ff5fa2; color: #ff5fa2; display: grid; place-items: center; text-align: center; font: 800 40px 'Jakarta'; line-height: 1; transform: rotate(-14deg); background: #fff2f8; box-shadow: 0 14px 30px -10px #1a166088; }
+.stamp small { display: block; font: 600 16px 'Mono'; letter-spacing: 0.2em; margin-top: 8px; }
+.brand { position: absolute; left: 64px; top: 56px; display: flex; align-items: center; gap: 18px; font: 600 25px 'Grotesk'; letter-spacing: 0.32em; text-transform: uppercase; text-shadow: 0 2px 12px #2a1a7088; }
+.brand img { width: 56px; height: 56px; border-radius: 14px; box-shadow: 0 6px 20px #2a1a7066; }
+.spark { position: absolute; width: 60px; height: 60px; filter: drop-shadow(0 0 10px #fff); }
+.spark path { fill: #fff; }
+.plane { position: absolute; filter: drop-shadow(0 50px 50px #2a1a7055) drop-shadow(0 0 1px #fff); }
+canvas#grain { position: absolute; inset: 0; mix-blend-mode: overlay; opacity: 0.22; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="pano">
+	<svg id="trail" class="abs" style="inset:0" width="5400" height="1350"></svg>
+
+	<!-- logo dans la lumière du soleil (slide 5) -->
+	<div class="abs" style="left:4610px; top:330px; width:500px; height:500px; border-radius:50%; background: radial-gradient(circle, #ffffffaa 0%, #ffd6ec55 35%, transparent 70%)"></div>
+	<img class="abs" src="a/logo-512.png" style="left:4720px; top:440px; width:280px; height:280px; border-radius:64px; box-shadow: 0 0 0 10px #ffffff33, 0 30px 80px -10px #3a2fa6cc, 0 0 120px #ffb3d6">
+
+	<!-- petit avion au loin, vers le soleil -->
+	<img class="plane" src="pano2/plane-small.png" style="left:4460px; top:820px; width:210px; transform:scaleX(-1) rotate(-14deg)">
+
+	<!-- GRAND hydravion en fond, slides 1 → 2 -->
+	<img class="plane" src="pano2/plane-big.png" style="left:150px; top:150px; width:1720px; transform:rotate(-12deg)">
+
+	<div class="brand"><img src="a/logo-512.png">Le Village Tech</div>
+
+	<!-- le Village Pass, à cheval sur 2|3 -->
+	<img class="abs" src="pano2/pass.png" style="left:1690px; top:90px; width:400px; transform:rotate(6deg); filter:drop-shadow(0 30px 40px #2a1a7088)">
+	<div class="tape blue" style="left:1800px; top:70px; width:190px; transform:rotate(-4deg)"></div>
+	<p class="note" style="left:1680px; top:690px; transform:rotate(-6deg)">ton pass t’attend…</p>
+
+	<!-- le billet (slide 3) -->
+	<img class="abs" src="pano2/ticket.png" style="left:2560px; top:180px; width:540px; transform:rotate(6deg); filter:drop-shadow(0 30px 40px #2a1a7088)">
+	<div class="tape" style="left:2720px; top:180px; width:240px; transform:rotate(-3deg)"></div>
+	<div class="stamp" style="left:2280px; top:930px">BÊTA<small>VILLAGE · 2026</small></div>
+
+	<!-- polaroïds de l'Académie (slide 4) -->
+	<div class="polaroid" style="left:3300px; top:170px; width:460px; height:420px; transform:rotate(-5deg)"><img src="pano2/hall.jpg"><p class="cap">le hall</p></div>
+	<div class="tape blue" style="left:3440px; top:148px; width:180px; transform:rotate(3deg)"></div>
+	<div class="polaroid" style="left:3800px; top:110px; width:440px; height:410px; transform:rotate(5deg)"><img src="pano2/biblio.jpg"><p class="cap">la bibliothèque</p></div>
+	<div class="tape" style="left:3940px; top:86px; width:180px; transform:rotate(-4deg)"></div>
+	<div class="polaroid" style="left:3320px; top:680px; width:450px; height:410px; transform:rotate(4deg)"><img src="pano2/amphi-palier.jpg"><p class="cap">l’amphi</p></div>
+	<div class="tape" style="left:3460px; top:658px; width:180px; transform:rotate(-3deg)"></div>
+	<div class="polaroid" style="left:3830px; top:650px; width:420px; height:390px; transform:rotate(-4deg)"><img src="pano2/salle-info.jpg"><p class="cap">la salle info</p></div>
+	<div class="tape blue" style="left:3960px; top:628px; width:170px; transform:rotate(4deg)"></div>
+
+	<div id="sparks"></div>
+	<canvas id="grain" width="5400" height="1350"></canvas>
+</div>
+<script>
+let seed = 2026; const rnd = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296;
+(() => { const c = document.getElementById('grain').getContext('2d'); const img = c.createImageData(5400, 1350); for (let i = 0; i < img.data.length; i += 4) { const v = 128 + (rnd() - 0.5) * 80; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; } c.putImageData(img, 0, 0); })();
+
+// traînée de condensation derrière le grand avion + trajet en pointillés jusqu'au petit avion
+document.getElementById('trail').innerHTML = `
+	<defs>
+		<linearGradient id="fade" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".85"/></linearGradient>
+		<filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+	</defs>
+	<path d="M -80 1330 C 80 1180, 200 1080, 360 990" fill="none" stroke="url(#fade)" stroke-width="34" stroke-linecap="round" filter="url(#soft)"/>
+	<path d="M -80 1390 C 110 1250, 260 1150, 430 1070" fill="none" stroke="url(#fade)" stroke-width="22" stroke-linecap="round" filter="url(#soft)" opacity=".7"/>
+	<path d="M 2000 760 C 2500 1260, 3200 1250, 3600 1180 S 4300 1000, 4470 920" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="5" stroke-dasharray="4 20" stroke-linecap="round"/>`;
+
+document.getElementById('sparks').innerHTML = [[1560, 110, .8], [3220, 690, .7], [4480, 260, 1.1], [5220, 360, .8], [5080, 860, .6], [1100, 1180, .7], [2480, 1100, .6]]
+	.map(([x, y, s]) => `<svg class="spark" style="left:${x}px;top:${y}px;transform:scale(${s})" viewBox="0 0 60 60"><path d="M30 0 C33 22 38 27 60 30 C38 33 33 38 30 60 C27 38 22 33 0 30 C22 27 27 22 30 0Z"/></svg>`).join('');
+window.ready = document.fonts.ready.then(() => Promise.all([...document.images].map(i => i.decode().catch(() => {}))));
+</script>
+</body>
+</html>
